@@ -26,15 +26,27 @@ build/
 Thumbs.db
 
 # Data (archivos grandes)
-data/raw/*
-data/processed/*
-!data/raw/.gitkeep
-!data/processed/.gitkeep
+data/heic/
+data/jpg/
+data/*/train/images/*
+data/*/train/labels/*
+data/*/val/images/*
+data/*/val/labels/*
+data/*/test/images/*
+data/*/test/labels/*
+data/*.zip
+data/roboflow_export/
 
 # Models (archivos grandes)
 models/*.pt
 models/*.onnx
 !models/.gitkeep
+
+# Pre-trained models (auto-downloaded)
+yolov10*.pt
+
+# Training runs
+runs/
 
 # Logs
 logs/
@@ -43,3 +55,7 @@ logs/
 # Env
 .env
 .env.local
+
+# uv
+.venv/
+uv.lock

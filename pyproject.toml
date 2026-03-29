@@ -1,0 +1,26 @@
+[project]
+name = "vpc2-autocobro"
+version = "0.1.0"
+description = "Sistema de Autocobro para Despensa Comunitaria - CEIA FIUBA"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "ultralytics>=8.0.0",
+    "pillow-heif>=0.13.0",
+    "pillow>=10.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+    "jupyter>=1.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.1.0",
+    "pytest>=7.0.0",
+]

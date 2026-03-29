@@ -78,10 +78,10 @@ Cámara -> YOLOv10 (detecta + clasifica) -> Lógica de registro -> Output JSON +
 
 ```bash
 # Opción 1: Archivo de video
-python inference.py --source video.mp4
+uv run python src/inference.py --model models/best.pt --source video.mp4
 
 # Opción 2: Cámara en vivo
-python inference.py --source 0
+uv run python src/inference.py --model models/best.pt --source 0
 ```
 
 ### Salida
@@ -310,4 +310,5 @@ Papers:
 Documentación:
 - [Ultralytics (YOLOv10)](https://docs.ultralytics.com/)
 - [Roboflow (anotación)](https://roboflow.com/)
+- [uv (gestor de dependencias)](https://docs.astral.sh/uv/)
 - [IEEE Conference Templates](https://www.ieee.org/conferences/publishing/templates.html)
