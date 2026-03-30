@@ -1,0 +1,15 @@
+train: train/images
+val: val/images
+test: test/images
+names:
+  0: aceite_1l
+  1: aceite_4l
+  2: dulce_de_leche
+  3: fideos
+  4: leche_descremada
+  5: leche_entera
+  6: miel
+  7: polenta
+  8: tomate
+  9: yerba_kalena
+path: /Users/belcattaneo/Documents/CEIA/4_Bimestre/vpcII/vpc2_autocobro/data/poc_multiproduct

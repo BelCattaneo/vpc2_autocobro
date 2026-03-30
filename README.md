@@ -13,8 +13,8 @@ uv sync --all-extras
 # 2. Descargar dataset desde Drive (ver sección "Descargar dataset anotado")
 # Link: https://drive.google.com/file/d/14hwSRfZ3qvrf3bUaZV5lpnX2ntSKO_dd
 
-# 3. Entrenar
-uv run jupyter notebook notebooks/train.ipynb
+# 3. Entrenar (POC)
+uv run jupyter notebook notebooks/train_single_product.ipynb
 # Abrir en VS Code: seleccionar kernel .venv/bin/python y ejecutar celdas
 ```
 
@@ -71,7 +71,8 @@ vpc2_autocobro/
 │   ├── train.py                  # Entrenamiento YOLOv10
 │   └── inference.py              # Inferencia
 ├── notebooks/
-│   └── train.ipynb               # Notebook de entrenamiento (usar este)
+│   ├── train_single_product.ipynb       # POC: productos individuales
+│   └── train_multi_and_single_product.ipynb  # Combinado: individual + multi
 ├── runs/                         # Outputs de entrenamiento/inferencia
 ├── docs/                         # Documentación adicional
 ├── pyproject.toml                # Dependencias (uv)
@@ -147,9 +148,13 @@ Para el responsable del dataset (anotación con Roboflow):
 
 ### 3. Entrenar modelo
 
-Opción A: Usar notebook (recomendado para experimentación)
+Opción A: Usar notebook (recomendado)
 ```bash
-uv run jupyter notebook notebooks/train.ipynb
+# POC - solo productos individuales
+uv run jupyter notebook notebooks/train_single_product.ipynb
+
+# Después de anotar multi-producto en Roboflow
+uv run jupyter notebook notebooks/train_multi_and_single_product.ipynb
 ```
 
 Opción B: Usar script

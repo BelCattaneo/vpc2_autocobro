@@ -88,6 +88,9 @@ def run_inference(
 
 
 def main():
+    # Default project path (absolute)
+    default_project = str(Path(__file__).parent.parent / "runs" / "detect")
+
     parser = argparse.ArgumentParser(
         description="Ejecuta inferencia con un modelo YOLOv10 entrenado"
     )
@@ -128,7 +131,7 @@ def main():
     parser.add_argument(
         "--project",
         type=str,
-        default="runs/detect",
+        default=default_project,
         help="Directorio del proyecto (default: runs/detect)"
     )
     parser.add_argument(
