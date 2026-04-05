@@ -72,6 +72,36 @@ Cámara -> YOLOv10 (detecta + clasifica) -> Lógica de registro -> Output JSON +
 
 ---
 
+## Hardware de Captura y Demo
+
+### Arquitectura Física
+
+```
+Webcam (cenital) ──USB──▶ Raspberry Pi 5 ◀──WiFi──▶ Tablet (browser)
+                                │
+                          micro-HDMI
+                                ▼
+                         Monitor (debug)
+```
+
+### Componentes
+
+| Componente | Modelo | Función |
+|------------|--------|---------|
+| Raspberry Pi | Pi 5 8GB | Servidor central (captura + inferencia) |
+| Webcam | USB 1080p | Captura cenital de mesa |
+| Tablet | Cualquiera con browser | Interfaz de usuario |
+| Monitor | HDMI | Debug (opcional) |
+
+### Modelo YOLO para Pi
+
+- Entrenar: cualquier variante (n/s/m) en laptop/cloud
+- Deployar en Pi: YOLOv10n para ~10 FPS
+
+Ver documentación completa: [docs/hardware_setup.md](docs/hardware_setup.md)
+
+---
+
 ## Interfaz del Sistema
 
 ### Entrada
