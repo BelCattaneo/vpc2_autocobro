@@ -28,6 +28,7 @@ Thumbs.db
 # Data (archivos grandes)
 data/heic/
 data/jpg/
+data/videos/
 data/*/train/images/*
 data/*/train/labels/*
 data/*/val/images/*

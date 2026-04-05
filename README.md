@@ -60,20 +60,29 @@ vpc2_autocobro/
 │   ├── jpg/                      # Imágenes convertidas a JPG
 │   │   ├── aceite_1l/
 │   │   └── ...
+│   ├── videos/                   # Videos de prueba (.MOV)
 │   └── poc_10_clases/            # Dataset YOLO (descargar de Drive)
 │       ├── data.yaml             # Configuración del dataset
 │       ├── train/images/, labels/
 │       ├── val/images/, labels/
 │       └── test/images/, labels/
-├── models/                       # Modelos entrenados
+├── models/
+│   ├── base/
+│   │   └── yolov10n.pt           # Modelo base pre-entrenado
+│   ├── best.pt                   # POC: productos individuales
+│   └── best_multiproduct.pt      # Multi-producto (oclusión)
 ├── src/
 │   ├── convert_heic.py           # Conversión HEIC → JPG
 │   ├── train.py                  # Entrenamiento YOLOv10
-│   └── inference.py              # Inferencia
+│   ├── inference.py              # Inferencia básica
+│   └── demo.py                   # Demo con tracking y visualización
 ├── notebooks/
 │   ├── train_single_product.ipynb       # POC: productos individuales
 │   └── train_multi_and_single_product.ipynb  # Combinado: individual + multi
-├── runs/                         # Outputs de entrenamiento/inferencia
+├── runs/
+│   ├── train/                    # Outputs de entrenamiento
+│   ├── detect/                   # Outputs de inferencia
+│   └── demo/                     # Outputs de demo (videos + JSON)
 ├── docs/                         # Documentación adicional
 ├── pyproject.toml                # Dependencias (uv)
 ├── planification.md              # Planificación detallada
@@ -192,6 +201,52 @@ uv run python src/inference.py --model runs/train/<exp>/weights/best.pt --source
 uv run python src/inference.py --model runs/train/<exp>/weights/best.pt --source imagen.jpg --conf 0.6
 ```
 
+### 5. Ejecutar demo (recomendado)
+
+El script `demo.py` proporciona una visualización completa con tracking estable y panel lateral:
+
+```bash
+# Con video
+uv run python src/demo.py --model models/best_multiproduct.pt --source data/videos/IMG_3278.MOV
+
+# Con webcam
+uv run python src/demo.py --model models/best_multiproduct.pt --source 0
+
+# Sin guardar video (solo visualización)
+uv run python src/demo.py --model models/best_multiproduct.pt --source 0 --no-save
+```
+
+Opciones del demo:
+
+| Parámetro | Default | Descripción |
+|-----------|---------|-------------|
+| --model | (requerido) | Path al modelo YOLO (.pt) |
+| --source | (requerido) | Video, directorio, o "0" para webcam |
+| --conf | 0.5 | Umbral de confianza para detecciones |
+| --warn-conf | 0.15 | Umbral para advertencias (productos no reconocidos) |
+| --confirm-frames | 5 | Frames consecutivos para confirmar detección |
+| --output | auto | Path para JSON de salida |
+| --no-save | false | No guardar video de salida |
+
+Visualización:
+
+```
++---------------------------+---------------+
+|                           | Productos:    |
+|      Video Feed           | leche x2      |
+|      con bboxes           | fideos x1     |
+|                           | Total: 3      |
+|      Verde = confirmado   |               |
+|      Amarillo = pendiente | Revisar:      |
+|      Naranja = advertencia| ? aceite (32%)|
++---------------------------+---------------+
+```
+
+Colores de bounding boxes:
+- Verde: producto confirmado (alta confianza, visto N frames)
+- Amarillo: producto pendiente de confirmación
+- Naranja: advertencia (baja confianza, requiere revisión)
+
 ## Clases del POC (10 clases)
 
 | ID | Clase |
@@ -211,21 +266,34 @@ uv run python src/inference.py --model runs/train/<exp>/weights/best.pt --source
 
 El sistema produce:
 
-1. Video con bounding boxes y lista de productos
-2. JSON con detecciones por frame
+1. Video con bounding boxes y panel lateral de productos
+2. JSON con estado final de la mesa
 
-Ejemplo de salida JSON:
+Ejemplo de salida JSON (demo.py):
 
 ```json
 {
-    "frame_id": 60,
-    "productos_en_mesa": [
-        {"product_id": "leche_entera", "confidence": 0.94, "status": "identified"},
-        {"product_id": "fideos", "confidence": 0.87, "status": "identified"}
-    ],
-    "total": 2
+  "timestamp": "2026-04-05T15:31:35.217350",
+  "source": "data/videos/IMG_3278.MOV",
+  "model": "models/best_multiproduct.pt",
+  "conf_threshold": 0.5,
+  "warn_threshold": 0.2,
+  "frames_processed": 414,
+  "productos": {
+    "fideos": 1,
+    "miel": 1,
+    "dulce_de_leche": 1
+  },
+  "total_items": 3,
+  "advertencias": {
+    "aceite_1l": 58,
+    "leche_descremada": 56
+  }
 }
 ```
+
+- `productos`: items confirmados con alta confianza
+- `advertencias`: items detectados con baja confianza que requieren revisión manual (número indica en cuántos frames fue visto)
 
 ## Criterios de Éxito POC
 

@@ -15,6 +15,9 @@ from datetime import datetime
 from ultralytics import YOLO
 
 
+BASE_MODELS_DIR = Path(__file__).parent.parent / "models" / "base"
+
+
 def train_model(
     data_yaml: Path,
     model_name: str = "yolov10n.pt",
@@ -57,7 +60,13 @@ def train_model(
     print("=" * 60)
     print()
 
-    model = YOLO(model_name)
+    # Cargar modelo base desde models/base/ si existe, sino descargar
+    model_path = BASE_MODELS_DIR / model_name
+    if model_path.exists():
+        model = YOLO(str(model_path))
+    else:
+        print(f"Modelo base no encontrado en {model_path}, descargando...")
+        model = YOLO(model_name)
 
     results = model.train(
         data=str(data_yaml),
