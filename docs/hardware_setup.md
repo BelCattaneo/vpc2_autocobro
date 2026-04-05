@@ -272,6 +272,99 @@ El servidor Flask corre en el Raspberry Pi y sirve:
 
 ---
 
+## Ejecución en Raspberry Pi
+
+### Comandos para Ejecutar
+
+```bash
+# SSH al Pi
+ssh pi@<ip-del-pi>
+
+# Navegar al proyecto
+cd vpc2_autocobro
+
+# Opción 1: Inferencia básica
+uv run python src/inference.py --model models/best_multiproduct.pt --source 0
+
+# Opción 2: Demo con tracking (recomendado)
+uv run python src/demo.py --model models/best_multiproduct.pt --source 0
+```
+
+### Cómo Funciona el Script
+
+El script corre en un loop continuo - no espera ninguna señal o trigger:
+
+```
+┌─────────────────────────────────────────┐
+│           SCRIPT CORRIENDO              │
+│                                         │
+│   ┌─────────┐                           │
+│   │  START  │                           │
+│   └────┬────┘                           │
+│        ▼                                │
+│   ┌─────────────┐                       │
+│   │ Abrir webcam│  cv2.VideoCapture(0)  │
+│   └──────┬──────┘                       │
+│          ▼                              │
+│   ┌──────────────┐                      │
+│   │ Leer frame   │◀─────────────┐       │
+│   └──────┬───────┘              │       │
+│          ▼                      │       │
+│   ┌──────────────┐              │       │
+│   │ YOLO predict │              │       │
+│   └──────┬───────┘              │       │
+│          ▼                      │       │
+│   ┌──────────────┐              │       │
+│   │ Mostrar/     │              │       │
+│   │ guardar      │              │       │
+│   └──────┬───────┘              │       │
+│          │                      │       │
+│          └──────────────────────┘       │
+│             (loop infinito)             │
+│                                         │
+│   Presionar 'Q' para detener            │
+└─────────────────────────────────────────┘
+```
+
+La webcam envía frames constantemente (~30 por segundo). El script los captura tan rápido como puede y ejecuta YOLO en cada uno.
+
+| Acción | Resultado |
+|--------|-----------|
+| Producto aparece en mesa | YOLO lo detecta, aparece bounding box |
+| Producto se retira | Detección desaparece |
+| Nada en la mesa | Frame vacío, sin detecciones |
+
+No se necesita "trigger" - el sistema está constantemente observando.
+
+### Antes de Ejecutar: Checklist
+
+```bash
+# 1. Clonar repo (si no está)
+git clone https://github.com/BelCattaneo/vpc2_autocobro.git
+cd vpc2_autocobro
+
+# 2. Instalar dependencias
+uv sync
+
+# 3. Copiar modelo entrenado al Pi (desde laptop)
+scp models/best_multiproduct.pt pi@<ip-del-pi>:~/vpc2_autocobro/models/
+
+# 4. Verificar que la webcam está detectada
+ls /dev/video*
+```
+
+### Display: Monitor vs Tablet
+
+El script usa `cv2.imshow()` que necesita un display:
+
+| Método | Comando | Cuándo usar |
+|--------|---------|-------------|
+| Con monitor HDMI | `uv run python src/demo.py ...` | Pi conectado a monitor |
+| Sin monitor (solo guarda video) | `uv run python src/demo.py ... --no-display` | Headless |
+| Interfaz tablet | `uv run python src/server.py` | Ver en browser del tablet |
+
+---
+
 ## Troubleshooting
 
 ### Webcam no detectada
