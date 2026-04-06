@@ -84,6 +84,12 @@ vpc2_autocobro/
 │   ├── detect/                   # Outputs de inferencia
 │   └── demo/                     # Outputs de demo (videos + JSON)
 ├── docs/                         # Documentación adicional
+│   ├── hardware_setup.md         # Setup Raspberry Pi + webcam + tablet
+│   └── papers/                   # Papers de referencia
+├── paper/                        # Paper IEEE del proyecto
+│   ├── paper.tex                 # Documento principal
+│   ├── paper.bib                 # Referencias
+│   └── PAPER_RULES.md            # Guía de escritura
 ├── pyproject.toml                # Dependencias (uv)
 ├── planification.md              # Planificación detallada
 └── README.md
