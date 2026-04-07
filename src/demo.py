@@ -394,6 +394,28 @@ def run_demo(
             confirmed = tracker.get_confirmed_items()
             pending = tracker.get_pending_items()
 
+            # Filtrar warnings: excluir detecciones que coinciden espacialmente con confirmados
+            def overlaps_with_confirmed(warning_det, confirmed_items, iou_thresh=0.3):
+                """Check if warning detection overlaps with any confirmed item of same class."""
+                for conf_item in confirmed_items:
+                    if conf_item["class"] != warning_det["class"]:
+                        continue
+                    # Calculate IoU
+                    box1, box2 = warning_det["bbox"], conf_item["bbox"]
+                    x1 = max(box1[0], box2[0])
+                    y1 = max(box1[1], box2[1])
+                    x2 = min(box1[2], box2[2])
+                    y2 = min(box1[3], box2[3])
+                    inter = max(0, x2 - x1) * max(0, y2 - y1)
+                    area1 = (box1[2] - box1[0]) * (box1[3] - box1[1])
+                    area2 = (box2[2] - box2[0]) * (box2[3] - box2[1])
+                    iou = inter / (area1 + area2 - inter) if (area1 + area2 - inter) > 0 else 0
+                    if iou > iou_thresh:
+                        return True
+                return False
+
+            current_warnings = [w for w in current_warnings if not overlaps_with_confirmed(w, confirmed)]
+
             # Dibujar frame
             display_frame = draw_frame(frame, confirmed, pending, current_warnings, counts, panel_width)
 
