@@ -1,46 +1,162 @@
 % Encoding: UTF-8
 
-@InProceedings{Winery,
-  author    = {Oliver Kopp and others},
-  booktitle = {Proceedings of 11\textsuperscript{th} International Conference on Service-Oriented Computing (ICSOC'13)},
-  title     = {{Winery -- A Modeling Tool for {TOSCA}-based Cloud Applications}},
-  year      = {2013},
-  pages     = {700--704},
-  publisher = {Springer Berlin Heidelberg},
-  series    = {LNCS},
-  volume    = {8274},
-  doi       = {10.1007/978-3-642-45005-1_64},
-  keywords  = {Cloud Applications; Modeling; TOSCA; Management; Portability},
+%% ============================================================
+%% Detección de objetos — arquitecturas base
+%% ============================================================
+
+@InProceedings{redmon2016yolo,
+  author    = {Redmon, Joseph and Divvala, Santosh and Girshick, Ross and Farhadi, Ali},
+  booktitle = {Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+  title     = {{You Only Look Once: Unified, Real-Time Object Detection}},
+  year      = {2016},
+  pages     = {779--788},
+  doi       = {10.1109/CVPR.2016.91},
 }
 
-@Article{Binz2009,
-  author    = {Tobias Binz and Gerd Breiter and Frank Leymann and Thomas Spatzier},
-  journal   = {IEEE Internet Computing},
-  title     = {{Portable Cloud Services Using TOSCA}},
-  year      = {2012},
-  issn      = {1089-7801},
-  month     = may,
-  number    = {03},
-  pages     = {80--85},
-  volume    = {16},
-  doi       = {10.1109/mic.2012.43},
-  publisher = {IEEE Computer Society},
+@Article{redmon2018yolov3,
+  author  = {Redmon, Joseph and Farhadi, Ali},
+  journal = {arXiv preprint arXiv:1804.02767},
+  title   = {{YOLOv3: An Incremental Improvement}},
+  year    = {2018},
+  url     = {https://arxiv.org/abs/1804.02767},
 }
 
-@Manual{mwe,
-  title  = {The \texttt{mwe} Package},
-  author = {Martin Scharrer},
-  year   = {2017},
-  url    = {http://texdoc.net/mwe},
+@Article{bochkovskiy2020yolov4,
+  author  = {Bochkovskiy, Alexey and Wang, Chien-Yao and Liao, Hong-Yuan Mark},
+  journal = {arXiv preprint arXiv:2004.10934},
+  title   = {{YOLOv4: Optimal Speed and Accuracy of Object Detection}},
+  year    = {2020},
+  url     = {https://arxiv.org/abs/2004.10934},
 }
 
-@Misc{acmart,
-  author =       {Boris Veytsman},
-  year =         {2021},
-  month =        aug,
-  title =        {LaTeX Class for the Association for Computing Machinery -- Acknowledgement Information},
-  lastaccessed = {September 17, 2021},
-  url =          {https://github.com/borisveytsman/acmart/blob/1704c8bf7eee92a1515ff755f5118b6a22bb1f8e/samples/samples.dtx#L709},
+@Misc{jocher2023ultralytics,
+  author       = {Jocher, Glenn and Chaurasia, Ayush and Qiu, Jing},
+  title        = {{Ultralytics YOLO}},
+  year         = {2023},
+  howpublished = {GitHub},
+  url          = {https://github.com/ultralytics/ultralytics},
+}
+
+@Article{wang2024yolov10,
+  author  = {Wang, Ao and Chen, Hui and Liu, Lihao and Chen, Kai and Lin, Zijia and Han, Jungong and Ding, Guiguang},
+  journal = {arXiv preprint arXiv:2405.14458},
+  title   = {{YOLOv10: Real-Time End-to-End Object Detection}},
+  year    = {2024},
+  url     = {https://arxiv.org/abs/2405.14458},
+}
+
+@Article{zhao2023rtdetr,
+  author  = {Zhao, Yian and Lv, Wenyu and Xu, Shangliang and Wei, Jinman and Wang, Guanzhong and Dang, Qingqing and Liu, Yi and Chen, Jie},
+  journal = {arXiv preprint arXiv:2304.08069},
+  title   = {{DETRs Beat YOLOs on Real-time Object Detection}},
+  year    = {2023},
+  url     = {https://arxiv.org/abs/2304.08069},
+}
+
+@InProceedings{girshick2014rcnn,
+  author    = {Girshick, Ross and Donahue, Jeff and Darrell, Trevor and Malik, Jitendra},
+  booktitle = {Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+  title     = {{Rich Feature Hierarchies for Accurate Object Detection and Semantic Segmentation}},
+  year      = {2014},
+  pages     = {580--587},
+  doi       = {10.1109/CVPR.2014.81},
+}
+
+%% ============================================================
+%% Detección de productos retail / datasets
+%% ============================================================
+
+@Article{wei2019rpc,
+  author  = {Wei, Xiu-Shen and Cui, Quan and Yang, Lei and Wang, Peng and Liu, Lingqiao},
+  journal = {arXiv preprint arXiv:1901.07249},
+  title   = {{RPC: A Large-Scale Retail Product Checkout Dataset}},
+  year    = {2019},
+  url     = {https://arxiv.org/abs/1901.07249},
+}
+
+@Article{goldman2019precise,
+  author  = {Goldman, Eran and Herzig, Roei and Eisenschtat, Aviv and Goldberger, Jacob and Hassner, Tal},
+  journal = {arXiv preprint arXiv:1902.04693},
+  title   = {{Precise Detection in Densely Packed Scenes}},
+  year    = {2019},
+  url     = {https://arxiv.org/abs/1902.04693},
+}
+
+%% ============================================================
+%% Tracking de objetos
+%% ============================================================
+
+@InProceedings{zhang2022bytetrack,
+  author    = {Zhang, Yifu and Sun, Peize and Jiang, Yi and Yu, Dongdong and Weng, Fucheng and Yuan, Zehuan and Luo, Ping and Liu, Wenyu and Wang, Xinggang},
+  booktitle = {European Conference on Computer Vision (ECCV)},
+  title     = {{ByteTrack: Multi-Object Tracking by Associating Every Detection Box}},
+  year      = {2022},
+  pages     = {1--21},
+  doi       = {10.1007/978-3-031-20177-8_1},
+  url       = {https://arxiv.org/abs/2110.06864},
+}
+
+%% ============================================================
+%% Transfer learning y data augmentation
+%% ============================================================
+
+@InProceedings{yosinski2014transferable,
+  author    = {Yosinski, Jason and Clune, Jeff and Bengio, Yoshua and Lipson, Hod},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  title     = {{How Transferable are Features in Deep Neural Networks?}},
+  year      = {2014},
+  pages     = {3320--3328},
+  url       = {https://arxiv.org/abs/1411.1792},
+}
+
+@Article{shorten2019augmentation,
+  author    = {Shorten, Connor and Khoshgoftaar, Taghi M.},
+  journal   = {Journal of Big Data},
+  title     = {{A Survey on Image Data Augmentation for Deep Learning}},
+  year      = {2019},
+  volume    = {6},
+  number    = {1},
+  pages     = {60},
+  doi       = {10.1186/s40537-019-0197-0},
+}
+
+%% ============================================================
+%% Métricas de evaluación
+%% ============================================================
+
+@Article{everingham2010pascal,
+  author    = {Everingham, Mark and Van Gool, Luc and Williams, Christopher K. I. and Winn, John and Zisserman, Andrew},
+  journal   = {International Journal of Computer Vision},
+  title     = {{The Pascal Visual Object Classes (VOC) Challenge}},
+  year      = {2010},
+  volume    = {88},
+  number    = {2},
+  pages     = {303--338},
+  doi       = {10.1007/s11263-009-0275-4},
+}
+
+%% ============================================================
+%% Herramientas y plataformas
+%% ============================================================
+
+@Misc{roboflow2023,
+  author       = {{Roboflow Inc.}},
+  title        = {{Roboflow: Computer Vision Platform}},
+  year         = {2023},
+  howpublished = {Online},
+  url          = {https://roboflow.com},
+}
+
+%% ============================================================
+%% Sistemas de autocobro
+%% ============================================================
+
+@Misc{amazongo,
+  author       = {{Amazon.com, Inc.}},
+  title        = {{Amazon Go: Just Walk Out Shopping}},
+  year         = {2018},
+  howpublished = {Online},
+  url          = {https://www.amazon.com/b?ie=UTF8&node=16008589011},
 }
 
 @Comment{jabref-meta: databaseType:bibtex;}

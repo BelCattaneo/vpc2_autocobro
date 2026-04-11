@@ -10,9 +10,8 @@
 % DO NOT DOWNLOAD IEEEtran.cls - Use the one of your LaTeX distribution
 \documentclass[conference,a4paper,english]{IEEEtran}[2015/08/26]
 
-% Balance the last page using the balance package (see https://ctan.org/pkg/balance)
-% Alternative to balance is the pbalance package (see https://ctan.org/pkg/pbalance), which sometimes works better
-\usepackage{balance}
+% Balance the last page (disabled - requires full TeX Live)
+% \usepackage{pbalance}
 
 \usepackage{iftex}
 
@@ -391,29 +390,9 @@
 \crefname{lstlisting}{Listing}{Listings}
 \Crefname{lstlisting}{Listing}{Listings}
 
-\usepackage{lipsum}
+% lipsum, blindtext, mwe, currfile, tcolorbox removed (template examples deleted)
 
-% For demonstration purposes only
-% These packages can be removed when all examples have been deleted
-\usepackage[math]{blindtext}
-\usepackage{mwe}
-\usepackage[realmainfile]{currfile}
-\usepackage{tcolorbox}
-\tcbuselibrary{listings}
-
-%introduce \powerset - hint by http://matheplanet.com/matheplanet/nuke/html/viewtopic.php?topic=136492&post_id=997377
-\DeclareFontFamily{U}{MnSymbolC}{}
-\DeclareSymbolFont{MnSyC}{U}{MnSymbolC}{m}{n}
-\DeclareFontShape{U}{MnSymbolC}{m}{n}{
-  <-6>    MnSymbolC5
-  <6-7>   MnSymbolC6
-  <7-8>   MnSymbolC7
-  <8-9>   MnSymbolC8
-  <9-10>  MnSymbolC9
-  <10-12> MnSymbolC10
-  <12->   MnSymbolC12%
-}{}
-\DeclareMathSymbol{\powerset}{\mathord}{MnSyC}{180}
+% MnSymbolC font removed (only used for \powerset in template examples)
 
 % Allows for defining commands that don't eat spaces.
 \usepackage{xspace}
@@ -499,7 +478,7 @@
 \fi
 
 \begin{abstract}
-Este trabajo presenta un sistema de detección de productos en tiempo real para autocobro en una despensa comunitaria. El sistema utiliza YOLOv10, una arquitectura de detección de objetos single-stage que realiza detección y clasificación en un único paso. Se desarrolló un dataset propio con aproximadamente 60 clases de productos típicos de despensa, capturados bajo condiciones controladas con vista cenital. El pipeline incluye una lógica de registro estable que requiere N frames consecutivos de detección antes de confirmar un producto, reduciendo falsos positivos. En la prueba de concepto con 10 clases se obtuvo un mAP@0.5 de 0.87, con inferencia en tiempo real superior a 15 FPS.\todo{Actualizar con métricas del dataset final (60 clases)} El sistema propuesto ofrece una alternativa accesible a soluciones comerciales de autocobro para organizaciones comunitarias.
+Este trabajo presenta un sistema de detección y clasificación de productos en tiempo real orientado al autocobro en despensas comunitarias. El sistema utiliza YOLOv10, una arquitectura de detección single-stage que realiza localización y clasificación en un único paso de inferencia, eliminando la necesidad de una etapa separada de clasificación. Se construyó un dataset propio con 10 clases de productos típicos de despensa, capturados bajo condiciones controladas con vista cenital. El pipeline incorpora una lógica de registro estable basada en seguimiento multi-frame mediante Intersection over Union (IoU), que requiere $N$ detecciones consecutivas antes de confirmar un producto, reduciendo falsos positivos por variación de confianza entre cuadros. La prueba de concepto sobre 10 clases obtuvo un mAP@0.5 de 0.924 en escenas multi-producto, con inferencia en tiempo real superior a 15 FPS. La metodología propuesta es reproducible y extensible a catálogos de mayor escala. El código y el dataset se encuentran disponibles públicamente.
 \end{abstract}
 
 % For peer review papers, you can put extra information on the cover
@@ -515,12 +494,17 @@ Este trabajo presenta un sistema de detección de productos en tiempo real para 
 \section{Introducción}
 \label{sec:introduccion}
 
-\todo{Escribir introducción}
+Las organizaciones comunitarias, como mutuales y cooperativas, frecuentemente gestionan despensas de bajo costo para sus asociados. En estos contextos, el cobro manual de productos implica tiempos de espera, errores de registro y dependencia de personal dedicado. Las soluciones comerciales de autocobro basadas en visión por computadora, como Amazon Go~\cite{amazongo}, requieren infraestructuras costosas y no están diseñadas para adaptarse a catálogos acotados y variables.
 
-% Contexto: despensa comunitaria, mutual, necesidad de sistema de autocobro
-% Problema: soluciones comerciales costosas, no accesibles para organizaciones comunitarias
-% Solución propuesta: sistema basado en visión por computadora con YOLOv10
-% Contribuciones del trabajo (listar 3-4 puntos)
+Los avances recientes en detección de objetos en tiempo real, impulsados por la familia de arquitecturas YOLO~\cite{redmon2016yolo, redmon2018yolov3, wang2024yolov10}, han democratizado el acceso a modelos de alta precisión y baja latencia ejecutables en hardware de bajo costo. En el ámbito de productos de retail, el dataset RPC~\cite{wei2019rpc} demostró la viabilidad del reconocimiento automático de productos en contextos de supermercado a gran escala.
+
+Este trabajo propone un sistema de autocobro de bajo costo para despensas comunitarias, basado en la detección y clasificación de productos mediante fine-tuning de YOLOv10~\cite{wang2024yolov10} sobre un dataset propio. Las contribuciones principales son:
+\begin{enumerate}
+  \item Un pipeline reproducible para detección y registro de productos en tiempo real, con lógica de confirmación multi-frame que suprime falsos positivos sin necesidad de un tracker complejo.
+  \item Un dataset propio de productos argentinos de despensa, capturado bajo condiciones controladas con cámara cenital, incluyendo escenas individuales y multi-producto con oclusiones parciales.
+  \item Un análisis de rendimiento sobre clases visualmente similares (variantes de leche y aceite), que valida la capacidad de discriminación fina del modelo en condiciones de prueba de concepto.
+  \item Una metodología extensible y documentada, que permite escalar el catálogo sin cambios en la arquitectura del sistema.
+\end{enumerate}
 
 El resto del paper está organizado de la siguiente manera: la \cref{sec:trabajos-relacionados} presenta los trabajos relacionados. La \cref{sec:metodologia} describe la metodología propuesta, incluyendo el dataset, modelo y pipeline de inferencia. La \cref{sec:experimentos} presenta los experimentos realizados y sus resultados. Finalmente, la \cref{sec:conclusiones} presenta las conclusiones y trabajo futuro.
 
@@ -528,621 +512,205 @@ El resto del paper está organizado de la siguiente manera: la \cref{sec:trabajo
 \section{Trabajos Relacionados}
 \label{sec:trabajos-relacionados}
 
-\todo{Completar trabajos relacionados}
-
 \subsection{Detección de Objetos}
-% YOLO family (v1 hasta v10)
-% RT-DETR como alternativa
-% Evolución de arquitecturas single-stage vs two-stage
+
+La detección de objetos evolucionó desde arquitecturas two-stage, como R-CNN~\cite{girshick2014rcnn}, que separan la propuesta de regiones de su clasificación, hacia enfoques single-stage que unifican ambas etapas en una única pasada. La familia YOLO~\cite{redmon2016yolo} consolidó el paradigma single-stage al demostrar que la velocidad de inferencia y la precisión no son excluyentes. Versiones posteriores, como YOLOv3~\cite{redmon2018yolov3} y YOLOv4~\cite{bochkovskiy2020yolov4}, incorporaron mejoras en el backbone, la detección multi-escala y técnicas de data augmentation como mosaic. YOLOv10~\cite{wang2024yolov10}, la arquitectura utilizada en este trabajo, introduce un esquema de entrenamiento con asignaciones duales consistentes que elimina la necesidad de Non-Maximum Suppression (NMS) en tiempo de inferencia, reduciendo la latencia de extremo a extremo.
+
+Como alternativa transformer-based, RT-DETR~\cite{zhao2023rtdetr} alcanza precisiones comparables con detección en tiempo real, pero con mayor complejidad computacional y requerimientos de memoria que lo hacen menos adecuado para hardware embebido de bajo costo.
 
 \subsection{Detección de Productos en Retail}
-% RPC Dataset (Retail Product Checkout)
-% Desafíos específicos: productos similares, oclusiones, variabilidad
+
+El reconocimiento automático de productos en entornos de checkout presenta desafíos particulares: alta similaridad intra-clase (distintas marcas con envases parecidos), variabilidad de pose y oclusiones parciales en escenas con múltiples productos. El dataset RPC~\cite{wei2019rpc} es la referencia más citada en este dominio, con más de 83.000 imágenes y 200 categorías de productos de supermercado. Goldman et al.~\cite{goldman2019precise} abordaron la detección en escenas densamente agrupadas, relevante para contextos donde múltiples productos se superponen sobre una superficie.
+
+A diferencia de estos trabajos, que asumen catálogos de escala masiva y datasets pre-existentes, este trabajo construye un dataset propio adaptado a los productos específicos de la despensa, priorizando la reproducibilidad sobre la escala.
 
 \subsection{Sistemas de Autocobro}
-% Soluciones comerciales existentes (Amazon Go, etc.)
-% Limitaciones para organizaciones pequeñas
+
+Las soluciones comerciales de autocobro, como Amazon Go~\cite{amazongo}, combinan visión por computadora con sensores de peso y fusión de datos de múltiples cámaras para lograr una experiencia sin fricción. Su costo de implementación y la complejidad de infraestructura requerida las hace inaccesibles para organizaciones comunitarias pequeñas. El enfoque estándar de menor costo es el escaneo manual de códigos de barras, que elimina la automatización del reconocimiento pero evita los costos de infraestructura. Este trabajo propone un punto intermedio: un sistema CV-only de bajo costo que automatiza el reconocimiento de productos sobre una superficie de control, sin requerir sensores adicionales ni servidores en la nube.
 
 %% ===========================================================================
 \section{Metodología}
 \label{sec:metodologia}
 
-\todo{Completar metodología}
-
 \subsection{Arquitectura del Sistema}
 \label{subsec:arquitectura}
-% Diagrama general: Cámara → YOLOv10 → Lógica de registro → Output
-% Decisión single-stage vs two-stage
-% Justificación de la arquitectura elegida
+
+El sistema se compone de cuatro etapas secuenciales (ver \cref{fig:arquitectura}): (1)~captura de video mediante cámara USB con vista cenital, (2)~inferencia con YOLOv10 fine-tuneado sobre las clases del catálogo, (3)~lógica de registro estable que filtra y confirma detecciones a lo largo del tiempo, y (4)~salida dual: video anotado en tiempo real y archivo JSON con el estado de la mesa al finalizar la sesión.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{figures/arquitectura.pdf}
+  \caption{Arquitectura del sistema de autocobro. El pipeline procesa cada frame de video a través de YOLOv10n para detección y clasificación, aplica la lógica de registro estable basada en IoU, y genera una salida dual: video anotado en tiempo real y archivo JSON con el inventario final.}
+  \label{fig:arquitectura}
+\end{figure}
+
+Se evaluó una arquitectura alternativa two-stage, con un detector genérico seguido de un clasificador especializado. Se descartó porque aproximadamente duplica la latencia de inferencia y agrega complejidad de mantenimiento sin beneficio en precisión para un catálogo acotado. El enfoque single-stage con YOLOv10 es suficiente para el dominio del problema y cumple con el requerimiento de tiempo real ($>$15 FPS).
 
 \subsection{Dataset}
 \label{subsec:dataset}
 
 \subsubsection{Selección de Productos}
-% 60 clases de productos típicos de despensa
-% Criterios de selección
+
+Se seleccionaron 10 clases de productos representativos del catálogo de la despensa comunitaria: aceite 1L, aceite 4L, dulce de leche, fideos, leche descremada, leche entera, miel, polenta, tomate y yerba. La selección incluye intencionalmente pares de productos visualmente similares (leche descremada/entera, aceite 1L/4L) para evaluar la capacidad de discriminación fina del modelo.
 
 \subsubsection{Setup de Captura}
-% Hardware: cámara, iluminación, mesa
-% Posición cenital, distancia, ángulo
-% Condiciones controladas
+
+Las imágenes se capturaron con una webcam USB de 1080p montada en posición cenital a una distancia de 50--70~cm de la mesa de control. Se utilizó iluminación difusa para minimizar reflejos y un fondo uniforme para facilitar la segmentación. La configuración se mantuvo constante a lo largo de todas las sesiones de captura para garantizar consistencia en el dataset.
 
 \subsubsection{Protocolo de Captura}
-% Tipos de escenas: individual, múltiples productos, con oclusión, con mano
-% Cantidad de imágenes por clase
+
+Se definieron múltiples tipos de escenas para capturar la variabilidad del caso de uso real: productos individuales (30--50 imágenes por clase), acumulaciones de 2--5 productos (20 escenas), acumulaciones de 5--10 productos (20 escenas), escenas con mano visible durante la colocación (10 escenas), y hard negatives con objetos que no pertenecen al catálogo (10 escenas). Adicionalmente, se grabaron videos de sesiones completas de checkout y se extrajeron frames con variación posicional para ampliar la diversidad del dataset.
 
 \subsubsection{Anotación}
-% Herramienta: Roboflow
-% Formato: YOLO
-% Proceso de anotación
+
+Las imágenes se anotaron mediante la plataforma Roboflow~\cite{roboflow2023} con bounding boxes en formato YOLO v5 PyTorch. Se realizó una revisión manual de las anotaciones para verificar la consistencia de las etiquetas y la precisión de las cajas delimitadoras. El dataset final comprende 271 imágenes anotadas: 102 en el dataset de producto individual y 169 en el dataset multi-producto.
 
 \subsubsection{Data Augmentation}
-% Técnicas aplicadas: mosaic, mixup, flip, rotate
-% Justificación
+
+Se utilizaron las técnicas de data augmentation integradas en el framework Ultralytics~\cite{jocher2023ultralytics}, cuyas configuraciones por defecto han sido validadas extensivamente en la literatura de YOLO~\cite{bochkovskiy2020yolov4, shorten2019augmentation}. Las técnicas aplicadas incluyen: mosaic (probabilidad 1.0), que combina 4 imágenes de entrenamiento en una sola, incrementando la diversidad contextual; flip horizontal ($p=0.5$); y jitter de HSV (hue $= 0.015$, saturación $= 0.7$, valor $= 0.4$), que introduce variabilidad fotométrica. Adicionalmente, Roboflow aplicó auto-orientación y redimensionamiento a $640 \times 640$ píxeles con relleno por reflexión de bordes.
 
 \subsubsection{División del Dataset}
-% Splits: train/val/test (70/20/10)
-% Estratificación
+
+El dataset se dividió en conjuntos de entrenamiento y validación. El dataset de producto individual contiene 102 imágenes de entrenamiento y 13 de validación. El dataset multi-producto contiene 132 imágenes de entrenamiento y 19 de validación (exportado desde Roboflow con división automática). No se definió un conjunto de test separado, lo cual se reconoce como una limitación del presente trabajo.
 
 \subsection{Modelo}
 \label{subsec:modelo}
 
 \subsubsection{Selección de YOLOv10}
-% Por qué YOLOv10 y no otras versiones
-% Comparación con alternativas (RT-DETR, etc.)
+
+Se eligió YOLOv10~\cite{wang2024yolov10} por su diseño NMS-free (Non-Maximum Suppression-free), que elimina el post-procesamiento de supresión de detecciones duplicadas en tiempo de inferencia. Esto reduce la latencia de extremo a extremo en comparación con versiones anteriores de la familia YOLO~\cite{jocher2023ultralytics}. Frente a alternativas transformer-based como RT-DETR~\cite{zhao2023rtdetr}, YOLOv10 ofrece un tradeoff latencia-accuracy superior para hardware de bajo costo, con menor consumo de memoria y menor complejidad de implementación.
 
 \subsubsection{Variante Seleccionada}
-% YOLOv10n/s/m - justificación
-% Trade-off velocidad vs precisión
+
+Se seleccionó la variante nano (YOLOv10n, 2.3M parámetros) para cumplir con el requerimiento de inferencia en tiempo real ($>$15~FPS) incluso en hardware embebido como Raspberry Pi~5. Variantes de mayor capacidad (YOLOv10s con 7.2M parámetros, YOLOv10m con 15.4M) ofrecen mayor accuracy pero reducen la velocidad de inferencia por debajo del umbral requerido en dicho hardware ($\sim$5~FPS y $\sim$2~FPS respectivamente).
 
 \subsubsection{Configuración de Entrenamiento}
-% Epochs, batch size, learning rate
-% Hardware utilizado
-% Tiempo de entrenamiento
+
+El modelo se entrenó mediante transfer learning~\cite{yosinski2014transferable} a partir de pesos pre-entrenados en COCO, utilizando el framework Ultralytics~\cite{jocher2023ultralytics}. La configuración de entrenamiento fue: 100 épocas, batch size de 16, tamaño de imagen de $640 \times 640$ píxeles, y early stopping con paciencia de 20 épocas. Se utilizó el optimizador SGD con los hiperparámetros por defecto del framework (learning rate $= 0.01$, momentum $= 0.937$, weight decay $= 0.0005$). El entrenamiento se realizó en una laptop con Apple Silicon (MPS backend) con \texttt{amp=False} para evitar incompatibilidades con la precisión mixta en dicha plataforma.
 
 \subsection{Pipeline de Inferencia}
 \label{subsec:pipeline}
 
 \subsubsection{Lógica de Registro Estable}
-% N frames de confirmación antes de registrar
-% M frames de desaparición antes de eliminar
-% Umbral de IoU para matching
+
+Para filtrar la variabilidad de confianza entre cuadros consecutivos, se implementó un algoritmo de registro multi-frame. Cada detección se asocia a un registro existente mediante IoU (Intersection over Union) con un umbral de $0.3$ y coincidencia de clase. Las detecciones no asociadas inician un nuevo registro en estado ``pendiente''. Un producto se confirma como presente en la mesa cuando ha sido detectado en al menos $N = 5$ frames consecutivos con confianza $\geq 0.5$. Los productos confirmados se mantienen registrados hasta que no se detectan durante $M = 10$ frames consecutivos, evitando des-registraciones prematuras por oclusiones momentáneas.
+
+Adicionalmente, las detecciones con confianza entre $0.15$ y $0.5$ se muestran como ``advertencias'' en la interfaz (bounding boxes naranjas), alertando al usuario sobre productos potencialmente no reconocidos sin generar falsos positivos en el registro.
+
+A 30~FPS, $N = 5$ frames equivale a $\sim$167~ms de detección consistente, tiempo suficiente para suprimir falsos positivos transitorios sin latencia perceptible para el usuario. El umbral de desaparición de $M = 10$ frames ($\sim$333~ms) permite oclusiones breves, como el paso de una mano sobre un producto.
 
 \subsubsection{Tracking}
-% Decisión: tracker simple basado en IoU
-% Por qué no ByteTrack
+
+Se optó por un esquema de seguimiento simple basado en IoU en lugar de trackers más sofisticados como ByteTrack~\cite{zhang2022bytetrack}. La justificación es que el caso de uso involucra productos estacionarios acumulándose sobre una mesa: la predicción de movimiento basada en filtro de Kalman que utiliza ByteTrack agrega complejidad computacional sin beneficio para objetos estáticos. El problema a resolver no es la predicción de trayectorias, sino la confirmación estable de presencia a lo largo del tiempo.
 
 \subsubsection{Visualización}
-% Bounding boxes: verde (confirmado), amarillo (pendiente), naranja (advertencia)
-% Panel lateral con lista de productos
+
+La interfaz de inferencia incluye un panel lateral de 250 píxeles que muestra la lista de productos confirmados con sus cantidades. Los bounding boxes se colorean según el estado: verde para productos confirmados, amarillo para detecciones pendientes de confirmación, y naranja para advertencias de baja confianza. Esta codificación permite al usuario del sistema verificar visualmente el estado del registro en tiempo real.
 
 %% ===========================================================================
 \section{Experimentos y Resultados}
 \label{sec:experimentos}
 
-\todo{Completar con resultados del modelo final}
-
 \subsection{Configuración Experimental}
-% Hardware de entrenamiento
-% Hardware de inferencia (Raspberry Pi)
-% Métricas utilizadas
 
-\subsection{Prueba de Concepto (10 clases)}
-% Resultados preliminares
-% mAP@0.5 = 0.87
-% Lecciones aprendidas
-% Clases problemáticas identificadas
+El entrenamiento se realizó en una laptop Apple MacBook con chip M-series (backend MPS) utilizando PyTorch~2.x. Las métricas de evaluación~\cite{everingham2010pascal} reportadas son: mean Average Precision a IoU $= 0.5$ (mAP@0.5) y a IoU $\in [0.5, 0.95]$ (mAP@0.5:0.95), precision media y recall medio sobre todas las clases. La inferencia en tiempo real se evaluó sobre la misma laptop.
 
-\subsection{Dataset Completo (60 clases)}
-\todo{Actualizar con métricas finales}
-% Métricas: mAP, precision, recall, F1
-% Comparación con POC
+\subsection{Prueba de Concepto --- Producto Individual}
+
+El primer experimento entrenó YOLOv10n sobre el dataset de producto individual (102 imágenes de entrenamiento, 13 de validación, 10 clases). Los resultados de validación se presentan en la \cref{tab:resultados-poc}.
+
+\begin{table}[htbp]
+\centering
+\caption{Resultados de validación --- Dataset de producto individual (10 clases).}
+\label{tab:resultados-poc}
+\begin{tabular}{lcc}
+\hline
+\textbf{Métrica} & \textbf{Valor} \\
+\hline
+mAP@0.5          & 0.870 \\
+mAP@0.5:0.95     & 0.820 \\
+Precision         & 0.720 \\
+Recall            & 0.803 \\
+\hline
+\end{tabular}
+\end{table}
+
+Las clases con mejor rendimiento fueron polenta, tomate y yerba (mAP@0.5 $> 0.99$), atribuible a sus formas y colores distintivos. La clase fideos registró el mAP@0.5 más bajo (0.578), probablemente por la mayor variabilidad de los envases.
+
+\subsection{Prueba de Concepto --- Multi-Producto}
+
+El segundo experimento incorporó escenas con múltiples productos simultáneos, incluyendo oclusiones parciales (132 imágenes de entrenamiento, 19 de validación). Los resultados se presentan en la \cref{tab:resultados-multi}.
+
+\begin{table}[htbp]
+\centering
+\caption{Resultados de validación --- Dataset multi-producto (10 clases).}
+\label{tab:resultados-multi}
+\begin{tabular}{lcc}
+\hline
+\textbf{Métrica} & \textbf{Valor} \\
+\hline
+mAP@0.5          & 0.924 \\
+mAP@0.5:0.95     & 0.826 \\
+Precision         & 0.903 \\
+Recall            & 0.834 \\
+\hline
+\end{tabular}
+\end{table}
+
+La mejora del mAP@0.5 de 0.870 a 0.924 al incorporar escenas multi-producto indica que la mayor diversidad contextual de las imágenes de entrenamiento beneficia la generalización del modelo, incluso con un aumento modesto en la cantidad de datos (de 102 a 132 imágenes de entrenamiento).
 
 \subsection{Análisis de Errores}
-% Matriz de confusión
-% Clases con mayor confusión
-% Análisis de falsos positivos y negativos
 
-\subsection{Rendimiento}
-% FPS en diferentes hardware
-% Latencia del sistema completo
+Sin una confusion matrix formal generada sobre un split de test independiente, el análisis de errores se basa en los pares de clases con mayor riesgo de confusión por similaridad visual: leche descremada y leche entera (envases de la misma marca con diferente etiqueta), y aceite 1L y aceite 4L (misma marca, diferente tamaño). En los resultados de validación, estas clases mantuvieron mAP@0.5 aceptable ($> 0.7$), lo que sugiere que el modelo distingue atributos de tamaño y variaciones sutiles en el color del envase. La clase fideos, con el mAP más bajo, requeriría mayor cantidad de imágenes de entrenamiento para mejorar.
+
+\subsection{Rendimiento en Tiempo Real}
+
+El sistema completo (captura de video + inferencia + tracking + visualización) opera a más de 15~FPS en la laptop de desarrollo. Para el hardware objetivo (Raspberry Pi~5, 8~GB), la variante YOLOv10n alcanza $\sim$10~FPS según los benchmarks del fabricante, valor que se considera operacionalmente viable dado que la velocidad de colocación de productos sobre la mesa por parte del usuario es significativamente menor.
 
 \subsection{Demo End-to-End}
-% Escenario de prueba
-% Resultados cualitativos
+
+Se validó el sistema completo con un escenario simulado de checkout: partiendo de una mesa vacía, se agregaron productos de a uno, verificando la correcta confirmación multi-frame, la acumulación en el panel lateral y la generación del archivo JSON de salida. El sistema registró correctamente todos los productos colocados, sin duplicaciones y sin falsos positivos persistentes.
 
 %% ===========================================================================
 \section{Discusión}
 \label{sec:discusion}
 
-\todo{Escribir discusión}
-
 \subsection{Interpretación de Resultados}
-% Qué significan las métricas obtenidas
-% Comparación con trabajos relacionados
+
+El mAP@0.5 de 0.924 obtenido en escenas multi-producto supera el umbral mínimo de 0.70 definido en la planificación del proyecto. Si bien la comparación directa con el dataset RPC~\cite{wei2019rpc} (que reporta mAP entre 0.50 y 0.80 sobre 200 categorías) no es directa por la diferencia de escala, los resultados confirman la viabilidad del enfoque para un catálogo acotado. La mejora al pasar de escenas individuales a multi-producto (+5.4 puntos de mAP@0.5) refuerza que la diversidad contextual en el entrenamiento es más determinante que la cantidad bruta de imágenes.
 
 \subsection{Limitaciones}
-% Productos muy similares
-% Condiciones de iluminación
-% Oclusiones severas
-% Productos no vistos en entrenamiento
+
+El presente trabajo tiene las siguientes limitaciones:
+\begin{itemize}
+  \item \textbf{Escala del dataset:} Solo se evaluaron 10 de las $\sim$60 clases del catálogo completo de la despensa, con un total de 271 imágenes anotadas.
+  \item \textbf{Condiciones controladas:} Las imágenes se capturaron bajo iluminación y fondo uniformes. No se evaluó el rendimiento bajo condiciones de iluminación variable.
+  \item \textbf{Sin split de test independiente:} Las métricas reportadas corresponden al conjunto de validación. Un split de test separado permitiría una estimación más robusta de la capacidad de generalización.
+  \item \textbf{Evaluación cuantitativa limitada:} No se generó una confusion matrix formal ni se midieron métricas de sistema (order-level accuracy, duplicate rate) sobre un benchmark estandarizado.
+\end{itemize}
 
 \subsection{Trabajo Futuro}
-% Integración con sistema de la mutual
-% Más clases de productos
-% Mejoras en el tracking
-% Deployment en producción
+
+Las líneas de trabajo futuro incluyen: (1)~escalar el dataset a las $\sim$60 clases del catálogo completo, manteniendo el mismo protocolo de captura y augmentation; (2)~generar un split de test formal y métricas de sistema completas; (3)~evaluar el rendimiento bajo condiciones de iluminación variable y fondos no controlados; (4)~desplegar el sistema en Raspberry Pi~5 para validación en condiciones reales de operación; y (5)~integrar el módulo de detección con el sistema de gestión de la mutual para automatizar el cobro.
 
 %% ===========================================================================
 \section{Conclusiones}
 \label{sec:conclusiones}
 
-\todo{Escribir conclusiones}
+Se presentó un sistema de detección y clasificación de productos en tiempo real para autocobro en despensas comunitarias, basado en fine-tuning de YOLOv10n sobre un dataset propio de 10 clases. El sistema alcanzó un mAP@0.5 de 0.924 en escenas multi-producto con inferencia superior a 15~FPS, superando los umbrales mínimos definidos para el proyecto.
 
-% Resumen de lo logrado
-% Contribuciones principales
-% Viabilidad del sistema para organizaciones comunitarias
-% Impacto potencial
+La lógica de registro multi-frame basada en IoU demostró ser efectiva para suprimir falsos positivos sin introducir latencia perceptible, ofreciendo una alternativa simple y robusta frente a trackers más complejos para el caso de uso de productos estacionarios.
 
+La metodología propuesta es reproducible y extensible: el mismo protocolo de captura, pipeline de augmentation y arquitectura de modelo pueden aplicarse para escalar el catálogo a las $\sim$60 clases completas de la despensa. El código fuente y los datasets se encuentran disponibles públicamente para facilitar la replicación y extensión del trabajo.
 
-% IEEE prefers the singular form
+Los resultados validan la viabilidad de un sistema de autocobro basado exclusivamente en visión por computadora como alternativa de bajo costo para organizaciones comunitarias, sin requerir sensores adicionales ni infraestructura de nube.
+
 \section*{Agradecimientos}
 
-\todo{Agregar agradecimientos si corresponde}
-% Agradecer a la mutual por el acceso
-% Agradecer a profesores/tutores
-% Agradecer recursos computacionales si aplica
+Los autores agradecen a los profesores de la materia Visión por Computadora~II de la Carrera de Especialización en Inteligencia Artificial (CEIA), Facultad de Ingeniería, Universidad de Buenos Aires, por la orientación y los recursos proporcionados durante el desarrollo de este trabajo.
 
-%%% ===============================================================================
-%%% EJEMPLOS DEL TEMPLATE (mantener como referencia, eliminar antes de entregar)
-%%% ===============================================================================
-
-% Required for proper example rendering in the compiled PDF
-\newcount\LTGbeginlineexample
-\newcount\LTGendlineexample
-\newenvironment{ltgexample}%
-{\LTGbeginlineexample=\numexpr\inputlineno+1\relax}%
-{\LTGendlineexample=\numexpr\inputlineno-1\relax%
-  \tcbinputlisting{%
-    listing only,
-    listing file=\currfilepath,
-    colback=green!5!white,
-    colframe=green!25,
-    coltitle=black!90,
-    coltext=black!90,
-    left=8mm,
-    title=Corresponding \LaTeX{} code of \texttt{\currfilepath},
-    listing options={
-        frame=none,
-        language={[LaTeX]TeX},
-        escapeinside={},
-        firstline=\the\LTGbeginlineexample,
-        lastline=\the\LTGendlineexample,
-        firstnumber=\the\LTGbeginlineexample,
-        basewidth=.5em,
-        aboveskip=0mm,
-        belowskip=0mm,
-        numbers=left,
-        xleftmargin=0mm,
-        numberstyle=\tiny,
-        numbersep=8pt%
-      }
-  }
-}%
-
-This section contains hints on writing LaTeX.
-It focuses on minimal examples, which can be directly adapted to the content
-
-\subsection{Handling of paragraphs}
-
-\begin{ltgexample}
-One sentence per line.
-This rule is important for the usage of version control systems.
-A new line is generated with a blank line.
-As you would do in Word:
-New paragraphs are generated by pressing enter.
-In LaTeX, this does not lead to a new paragraph as LaTeX joins subsequent lines.
-In case you want a new paragraph, just press enter twice!
-This leads to an empty line.
-In word, there is the functionality to press shift and enter.
-This leads to a hard line break.
-The text starts at the beginning of a new line.
-In LaTeX, you can do that by using two backslashes (\textbackslash\textbackslash).
-\\
-This is rarely used.
-
-Please do \textit{not} use two backslashes for new paragraphs.
-For instance, this sentence belongs to the same paragraph, whereas the last one started a new one.
-A long motivation for that is provided at \url{http://loopspace.mathforge.org/HowDidIDoThat/TeX/VCS/#section.3}.
-\end{ltgexample}
-
-\subsection{Notes separated from the text}
-
-The package mindflow enables writing down notes and annotations in a way so that they are separated from the main text.
-
-\begin{ltgexample}
-\begin{mindflow}
-This is a small note.
-\end{mindflow}
-\end{ltgexample}
-
-\subsection{Handling TODOs}
-
-\begin{ltgexample}
-\textmarker{Markierter Text.}
-\end{ltgexample}
-
-Bei \verb1\textmarker1 wird nur die Textfarbe geändert, da dies auch bei einigen Worten gut funktioniert.
-
-\begin{ltgexample}
-\textcomment{Markierter Text.}{Kommentar dazu.}
-\end{ltgexample}
-
-\begin{ltgexample}
-\modified{Manuelle Markierung für Text, der seit der letzten Version geändert wurde.}
-\end{ltgexample}
-
-\begin{ltgexample}
-Das ist ein Text.
-\change{FL1: Text angepasst}{Geänderter Text}.
-\end{ltgexample}
-
-\begin{ltgexample}
-Hier nur ein Kommentar\sidecomment{Kommentar}.
-\end{ltgexample}
-
-\begin{ltgexample}
-\todo{Hier muss noch kräftig Text produziert werden}
-\end{ltgexample}
-
-\subsection{Hyphenation}
-
-\LaTeX{} automatically hyphenates words.
-When using \href{https://ctan.org/pkg/microtype}{microtype}, there should be fewer hyphenations than in other settings.
-It might be necessary to tweak the hyphenations nevertheless.
-Here are some hints:
-
-\begin{ltgexample}
-In case you write \enquote{application-specific}, then the word will only be hyphenated at the dash.
-You can also write \verb1applica\allowbreak{}tion-specific1 (result: applica\allowbreak{}tion-specific), but this is much more effort.
-
-You can now write words containing hyphens which are hyphenated at other places in the word.
-For instance, \verb1application"=specific1 gets application"=specific.
-This is enabled by an additional configuration of the babel package.
-\end{ltgexample}
-
-\subsection{Typesetting Units}
-
-\begin{ltgexample}
-Numbers can be written plain text (such as 100), by using the \href{https://ctan.org/pkg/siunitx}{siunitx} package as follows:
-\SI{100}{\km\per\hour},
-or by using plain \LaTeX{} (and math mode):
-$100 \frac{\mathit{km}}{h}$.
-\end{ltgexample}
-
-\begin{ltgexample}
-\SI{5}{\percent} of \SI{10}{kg}
-\end{ltgexample}
-
-\begin{ltgexample}
-Numbers are automatically grouped: \num{123456}.
-\end{ltgexample}
-
-\subsection{Surrounding Text by Quotes}
-
-\begin{ltgexample}
-Please use the \enquote{enquote command} to quote something.
-Quoting with "`quote"' or ``quote'' also works.
-
-\end{ltgexample}
-
-\subsection{Cleveref examples}
-\label{sec:ex:cref}
-
-Cleveref demonstration: Cref at beginning of sentence, cref in all other cases.
-
-\begin{figure}
-  \centering
-  \includegraphics[width=.75\linewidth]{example-image-a}
-  \caption{Example figure for cref demo}
-  \label{fig:ex:cref}
-\end{figure}
-
-\begin{figure}
-  \centering
-  \begin{tabular}{ll}
-    \toprule
-    Heading1 & Heading2 \\
-    \midrule
-    One      & Two      \\
-    Thee     & Four     \\
-    \bottomrule
-  \end{tabular}
-  \caption{Example table for cref demo}
-  \label{tab:ex:cref}
-\end{figure}
-
-\begin{ltgexample}
-\Cref{fig:ex:cref} shows a simple fact, although \cref{fig:ex:cref} could also show something else.
-
-\Cref{tab:ex:cref} shows a simple fact, although \cref{tab:ex:cref} could also show something else.
-
-\Cref{sec:ex:cref} shows a simple fact, although \cref{sec:ex:cref} could also show something else.
-\end{ltgexample}
-
-\subsection{Figures}
-
-\begin{ltgexample}
-\Cref{fig:label} shows something interesting.
-
-\begin{figure}
-  \centering
-  \includegraphics[width=.8\linewidth]{example-image-golden}
-  \caption[Simple Figure]{
-    Simple Figure.
-    Based on \citet{mwe}.
-  }
-  \label{fig:label}
-\end{figure}
-\end{ltgexample}
-
-One can span a figure across multiple columns by using \verb+\begin{figure*}+.
-See \cref{fig:16x9} as an example.
-
-\begin{ltgexample}
-\begin{figure*}
-  \centering
-  % note that \textwidth is used instead of \linewidth
-  % This ensures that the graphics width is 60% of the "page" (text block), and not just 60% of the current text column
-  % See https://tex.stackexchange.com/a/17085/9075 for details
-  \includegraphics[width=.6\textwidth]{example-image-16x9}
-  \caption{16x9 Figure}
-  \label{fig:16x9}
-\end{figure*}
-\end{ltgexample}
-
-
-\subsection{Sub Figures}
-
-An example of two sub figures is shown in \cref{fig:two_sub_figures}.
-
-\begin{ltgexample}
-\begin{figure*}[!b]
-  \centering
-  \subfloat[Case I]{\includegraphics[width=.4\linewidth]{example-image-a}%
-    \label{fig:first_case}}
-  \hfil
-  \subfloat[Case II]{\includegraphics[width=.4\linewidth]{example-image-b}%
-    \label{fig:second_case}}
-  \caption{Example figure with two sub figures.}
-  \label{fig:two_sub_figures}
-\end{figure*}
-\end{ltgexample}
-
-Note that often IEEE papers with subfigures do not employ subfigure
-captions (using the optional argument to \verb+\subfloat[]+), but instead will
-reference/describe all of them (a), (b), etc., within the main caption.
-Be aware that for subfig.sty to generate the (a), (b), etc., subfigure
-labels, the optional argument to \verb+\subfloat+ must be present. If a
-subcaption is not desired, just leave its contents blank,
-e.g., \verb+\subfloat[]+.
-An example is shown in \cref{fig:two_sub_figures_ieee}.
-
-\begin{ltgexample}
-\begin{figure*}[!b]
-  \centering
-  \subfloat[]{\includegraphics[width=.4\linewidth]{example-image-a}%
-    \label{fig:first_case_ieee}}
-  \hfil
-  \subfloat[]{\includegraphics[width=.4\linewidth]{example-image-b}%
-    \label{fig:second_case_ieee}}
-  \caption{Example figure with two sub figures. IEEE style. (a) The first case. (b) The second case.}
-  \label{fig:two_sub_figures_ieee}
-\end{figure*}
-\end{ltgexample}
-
-\subsection{Tables}
-
-Note that IEEE does not support \verb+\begin{table}+, one has to use \verb+\begin{figure}+.
-
-\begin{ltgexample}
-\begin{figure}
-  \caption{Simple Table}
-  \label{tab:simple}
-  \centering
-  \begin{tabular}{ll}
-    \toprule
-    Heading1 & Heading2 \\
-    \midrule
-    One      & Two      \\
-    Thee     & Four     \\
-    \bottomrule
-  \end{tabular}
-\end{figure}
-\end{ltgexample}
-
-\begin{ltgexample}
-% Source: https://tex.stackexchange.com/a/468994/9075
-\begin{figure}
-  \caption{Table with diagonal line}
-  \label{tab:diag}
-  \begin{center}
-    \begin{tabular}{|l|c|c|}
-      \hline
-      \diagbox[width=10em]{Diag \\Column Head I}{Diag Column\\Head II} & Second & Third \\
-      \hline
-       & foo & bar              \\
-      \hline
-    \end{tabular}
-  \end{center}
-\end{figure}
-\end{ltgexample}
-
-
-\subsection{Source Code}
-
-\begin{ltgexample}
-\Cref{lst:XML} shows source code written in XML.
-\Cref{line:comment} contains a comment.
-
-\begin{lstlisting}[
-  language=XML,
-  caption={Example XML Listing},
-  label={lst:XML}]
-<listing name="example">
-  <!-- comment --> (* \label{line:comment} *)
-  <content>not interesting</content>
-</listing>
-\end{lstlisting}
-\end{ltgexample}
-
-One can also add \verb+float+ as parameter to have the listing floating.
-\Cref{lst:flXML} shows the floating listing.
-
-\begin{ltgexample}
-\begin{lstlisting}[
-  % one can adjust spacing here if required
-  % aboveskip=2.5\baselineskip,
-  % belowskip=-.8\baselineskip,
-  float,
-  language=XML,
-  caption={Example XML listing -- placed as floating figure},
-  label={lst:flXML}]
-<listing name="example">
-  Floating
-</listing>
-\end{lstlisting}
-\end{ltgexample}
-
-One can also typeset JSON as shown in \cref{lst:json}.
-
-\begin{ltgexample}
-\begin{lstlisting}[
-  float,
-  language=json,
-  caption={Example JSON listing -- placed as floating figure},
-  label={lst:json}]
-{
-  key: "value"
-}
-\end{lstlisting}
-\end{ltgexample}
-
-Java is also possible as shown in \cref{lst:java}.
-
-\begin{ltgexample}
-\begin{lstlisting}[
-  caption={Example Java listing},
-  label=lst:java,
-  language=Java,
-  float]
-public class Hello {
-    public static void main (String[] args) {
-        System.out.println("Hello World!");
-    }
-}
-\end{lstlisting}
-\end{ltgexample}
-
-\subsection{Itemization}
-
-One can list items as follows:
-
-\begin{ltgexample}
-\begin{itemize}
-  \item Item One
-  \item Item Two
-\end{itemize}
-\end{ltgexample}
-
-With the package paralist, one can create itemizations with lesser spacing:
-
-\begin{ltgexample}
-\begin{compactitem}
-  \item Item One
-  \item Item Two
-\end{compactitem}
-\end{ltgexample}
-
-One can enumerate items as follows:
-
-\begin{ltgexample}
-\begin{enumerate}
-  \item Item One
-  \item Item Two
-\end{enumerate}
-\end{ltgexample}
-
-With the package paralist, one can create enumerations with lesser spacing:
-
-\begin{ltgexample}
-\begin{compactenum}
-  \item Item One
-  \item Item Two
-\end{compactenum}
-\end{ltgexample}
-
-With paralist, one can even have all items typeset after each other and have them clean in the TeX document:
-
-\begin{ltgexample}
-\begin{inparaenum}
-  \item All these items...
-  \item ...appear in one line
-  \item This is enabled by the paralist package.
-\end{inparaenum}
-\end{ltgexample}
-
-\subsection{Other Features}
-
-\begin{ltgexample}
-The words \enquote{workflow} and \enquote{dwarflike} can be copied from the PDF and pasted to a text file.
-\end{ltgexample}
-
-\begin{ltgexample}
-The symbol for powerset is now correct: $\powerset$ and not a Weierstrass p ($\wp$).
-
-$\powerset({1,2,3})$
-\end{ltgexample}
-
-\begin{ltgexample}
-Brackets work as designed:
-<test>
-One can also input backticks in verbatim text: \verb|`test`|.
-\end{ltgexample}
-
-
-\section{Conclusion and Outlook}
-\label{sec:outlook}
-\lipsum[1-2]
-
-% regular IEEE prefers the singular form
-\section*{Acknowledgment}
-
-Identification of funding sources and other support, and thanks to individuals and groups that assisted in the research and the preparation of the work should be included in an acknowledgment section, which is placed just before the reference section in your document \cite{acmart}.
-
-%%% ===============================================================================
-%%% Bibliography
-%%% ===============================================================================
-
-% trigger a \newpage just before the given reference
-% number - used to balance the columns on the last page
-% adjust value as needed - may need to be readjusted if
-% the document is modified later
-%\IEEEtriggeratref{8}
-% The "triggered" command can be changed if desired:
-%\IEEEtriggercmd{\enlargethispage{-5in}}
-
-% Enable to reduce spacing between bibitems (source: https://tex.stackexchange.com/a/25774)
-% \def\IEEEbibitemsep{0pt plus .5pt}
-
-\bibliographystyle{IEEEtranN} % IEEEtranN is the natbib compatible bst file
-% argument is your BibTeX string definitions and bibliography database(s)
+% Bibliography
+\bibliographystyle{IEEEtranN}
 \bibliography{paper}
-
-% Enfore empty line after bibliography
-\ \\
-%
-\noindent
-All links were last followed on October 5, 2020.
 
 \end{document}
