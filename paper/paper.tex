@@ -659,9 +659,45 @@ Recall            & 0.834 \\
 
 La mejora del mAP@0.5 de 0.870 a 0.924 al incorporar escenas multi-producto indica que la mayor diversidad contextual de las imágenes de entrenamiento beneficia la generalización del modelo, incluso con un aumento modesto en la cantidad de datos (de 102 a 132 imágenes de entrenamiento).
 
+\subsection{Evaluación sobre Test Split}
+
+Se evaluó el modelo sobre un split de test independiente de 18 imágenes (no vistas durante entrenamiento ni validación), obteniendo un mAP@0.5 de 0.719, por encima del umbral mínimo de 0.70 definido en la planificación. La \cref{tab:resultados-test} presenta las métricas globales.
+
+\begin{table}[htbp]
+\centering
+\caption{Resultados de evaluación sobre test split (18 imágenes, 50 instancias).}
+\label{tab:resultados-test}
+\begin{tabular}{lcc}
+\hline
+\textbf{Métrica} & \textbf{Valor} \\
+\hline
+mAP@0.5          & 0.719 \\
+mAP@0.5:0.95     & 0.628 \\
+Precision         & 0.560 \\
+Recall            & 0.677 \\
+\hline
+\end{tabular}
+\end{table}
+
 \subsection{Análisis de Errores}
 
-Sin una confusion matrix formal generada sobre un split de test independiente, el análisis de errores se basa en los pares de clases con mayor riesgo de confusión por similaridad visual: leche descremada y leche entera (envases de la misma marca con diferente etiqueta), y aceite 1L y aceite 4L (misma marca, diferente tamaño). En los resultados de validación, estas clases mantuvieron mAP@0.5 aceptable ($> 0.7$), lo que sugiere que el modelo distingue atributos de tamaño y variaciones sutiles en el color del envase. La clase fideos, con el mAP más bajo, requeriría mayor cantidad de imágenes de entrenamiento para mejorar.
+La \cref{fig:confusion-matrix} muestra la confusion matrix normalizada sobre el test split. Las clases miel y tomate alcanzan recall perfecto (1.0), mientras que leche\_entera presenta la mayor tasa de confusión con el fondo (0.67 de miss rate). Los pares aceite\_1l/aceite\_4l y leche\_descremada/leche\_entera no muestran confusión mutua significativa, lo que indica que el modelo distingue atributos de tamaño y variaciones de etiqueta. La clase fideos (mAP@0.5 = 0.581) y yerba\_kalena (0.544) requieren mayor cantidad de imágenes de entrenamiento para mejorar.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{figures/confusion_matrix.png}
+  \caption{Confusion matrix normalizada sobre el test split (18 imágenes, 50 instancias). Las filas representan las predicciones y las columnas los ground truth.}
+  \label{fig:confusion-matrix}
+\end{figure}
+
+La \cref{fig:pr-curve} presenta las curvas Precision-Recall por clase, evidenciando la variabilidad de rendimiento entre clases con alta separabilidad visual (miel, tomate) y clases con envases similares (fideos, yerba\_kalena).
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{figures/pr_curve.png}
+  \caption{Curvas Precision-Recall por clase sobre el test split. mAP@0.5 global = 0.719.}
+  \label{fig:pr-curve}
+\end{figure}
 
 \subsection{Rendimiento en Tiempo Real}
 
@@ -677,7 +713,7 @@ Se validó el sistema completo con un escenario simulado de checkout: partiendo 
 
 \subsection{Interpretación de Resultados}
 
-El mAP@0.5 de 0.924 obtenido en escenas multi-producto supera el umbral mínimo de 0.70 definido en la planificación del proyecto. Si bien la comparación directa con el dataset RPC~\cite{wei2019rpc} (que reporta mAP entre 0.50 y 0.80 sobre 200 categorías) no es directa por la diferencia de escala, los resultados confirman la viabilidad del enfoque para un catálogo acotado. La mejora al pasar de escenas individuales a multi-producto (+5.4 puntos de mAP@0.5) refuerza que la diversidad contextual en el entrenamiento es más determinante que la cantidad bruta de imágenes.
+El modelo alcanzó un mAP@0.5 de 0.865 en validación y 0.719 en el test split independiente, superando el umbral mínimo de 0.70 definido en la planificación. La diferencia entre validación y test (14.6 puntos) sugiere cierto overfitting atribuible al tamaño reducido del dataset. Si bien la comparación directa con el dataset RPC~\cite{wei2019rpc} (que reporta mAP entre 0.50 y 0.80 sobre 200 categorías) no es directa por la diferencia de escala, los resultados confirman la viabilidad del enfoque para un catálogo acotado.
 
 \subsection{Limitaciones}
 
@@ -685,8 +721,8 @@ El presente trabajo tiene las siguientes limitaciones:
 \begin{itemize}
   \item \textbf{Escala del dataset:} Solo se evaluaron 10 de las $\sim$60 clases del catálogo completo de la despensa, con un total de 271 imágenes anotadas.
   \item \textbf{Condiciones controladas:} Las imágenes se capturaron bajo iluminación y fondo uniformes. No se evaluó el rendimiento bajo condiciones de iluminación variable.
-  \item \textbf{Sin split de test independiente:} Las métricas reportadas corresponden al conjunto de validación. Un split de test separado permitiría una estimación más robusta de la capacidad de generalización.
-  \item \textbf{Evaluación cuantitativa limitada:} No se generó una confusion matrix formal ni se midieron métricas de sistema (order-level accuracy, duplicate rate) sobre un benchmark estandarizado.
+  \item \textbf{Diferencia validación-test:} El gap de 14.6 puntos de mAP@0.5 entre validación (0.865) y test (0.719) sugiere overfitting por el tamaño reducido del dataset, mitigable con mayor cantidad de imágenes.
+  \item \textbf{Métricas de sistema pendientes:} No se midieron métricas end-to-end (order-level accuracy, duplicate rate, miss rate) sobre un benchmark estandarizado.
 \end{itemize}
 
 \subsection{Trabajo Futuro}
