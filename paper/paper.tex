@@ -496,7 +496,7 @@ Este trabajo presenta un sistema de detección y clasificación de productos en 
 
 Las organizaciones comunitarias, como mutuales y cooperativas, frecuentemente gestionan despensas de bajo costo para sus asociados. En estos contextos, el cobro manual de productos implica tiempos de espera, errores de registro y dependencia de personal dedicado. Las soluciones comerciales de autocobro basadas en visión por computadora, como Amazon Go~\cite{amazongo}, requieren infraestructuras costosas y no están diseñadas para adaptarse a catálogos acotados y variables.
 
-Los avances recientes en detección de objetos en tiempo real, impulsados por la familia de arquitecturas YOLO~\cite{redmon2016yolo, redmon2018yolov3, wang2024yolov10}, han democratizado el acceso a modelos de alta precisión y baja latencia ejecutables en hardware de bajo costo. En el ámbito de productos de retail, el dataset RPC~\cite{wei2019rpc} demostró la viabilidad del reconocimiento automático de productos en contextos de supermercado a gran escala.
+Los avances recientes en detección de objetos en tiempo real, impulsados por la familia de arquitecturas YOLO~\cite{redmon2016yolo, redmon2018yolov3, wang2024yolov10}, han democratizado el acceso a modelos de alta precisión y baja latencia ejecutables en hardware de bajo costo. En el ámbito de productos de retail, el dataset RPC~\cite{wei2019rpc} demostró la viabilidad del reconocimiento automático de productos en contextos de supermercado a gran escala. Más recientemente, Fuchs et al.~\cite{fuchs2019grocerystore} presentaron un sistema de reconocimiento de productos de supermercado basado en fine-tuning de redes convolucionales sobre un dataset propio de productos suecos, logrando accuracy superior al 85\% en un catálogo de 81 clases, demostrando la viabilidad del enfoque para catálogos acotados similares al de este trabajo.
 
 Este trabajo propone un sistema de autocobro de bajo costo para despensas comunitarias, basado en la detección y clasificación de productos mediante fine-tuning de YOLOv10~\cite{wang2024yolov10} sobre un dataset propio. Las contribuciones principales son:
 \begin{enumerate}
@@ -733,13 +733,23 @@ Las líneas de trabajo futuro incluyen: (1)~escalar el dataset a las $\sim$60 cl
 \section{Conclusiones}
 \label{sec:conclusiones}
 
-Se presentó un sistema de detección y clasificación de productos en tiempo real para autocobro en despensas comunitarias, basado en fine-tuning de YOLOv10n sobre un dataset propio de 10 clases. El sistema alcanzó un mAP@0.5 de 0.924 en escenas multi-producto con inferencia superior a 15~FPS, superando los umbrales mínimos definidos para el proyecto.
+A partir del diseño, implementación y evaluación del sistema de autocobro propuesto, se derivan las siguientes conclusiones:
 
-La lógica de registro multi-frame basada en IoU demostró ser efectiva para suprimir falsos positivos sin introducir latencia perceptible, ofreciendo una alternativa simple y robusta frente a trackers más complejos para el caso de uso de productos estacionarios.
+\begin{enumerate}
+  \item El fine-tuning de YOLOv10n sobre un dataset propio de 10 clases de productos de despensa alcanzó un mAP@0.5 de 0.865 en validación y 0.719 en el test split independiente, superando el umbral mínimo de 0.70 establecido para el proyecto y confirmando la viabilidad del enfoque single-stage para este dominio.
 
-La metodología propuesta es reproducible y extensible: el mismo protocolo de captura, pipeline de augmentation y arquitectura de modelo pueden aplicarse para escalar el catálogo a las $\sim$60 clases completas de la despensa. El código fuente y los datasets se encuentran disponibles públicamente para facilitar la replicación y extensión del trabajo.
+  \item La arquitectura single-stage con YOLOv10n (2.3M parámetros) permite inferencia en tiempo real superior a 15~FPS en laptop y $\sim$10~FPS en Raspberry Pi~5, cumpliendo los requisitos de latencia para una experiencia de usuario fluida sin requerir hardware especializado.
 
-Los resultados validan la viabilidad de un sistema de autocobro basado exclusivamente en visión por computadora como alternativa de bajo costo para organizaciones comunitarias, sin requerir sensores adicionales ni infraestructura de nube.
+  \item La lógica de registro multi-frame basada en IoU, con confirmación a 5 frames y tolerancia de desaparición de 10 frames, demostró ser efectiva para suprimir falsos positivos sin introducir latencia perceptible, ofreciendo una alternativa simple y robusta frente a trackers más complejos como ByteTrack para el caso de uso de productos estacionarios.
+
+  \item El data augmentation resultó crítico para la generalización del modelo: sin augmentation, el mAP@0.5 en test cae a 0.512 con un recall de apenas 0.376. Las técnicas por defecto de Ultralytics (mosaic, flip horizontal, jitter HSV) incrementaron el mAP en test en más de 25 puntos porcentuales.
+
+  \item La diferencia de 14.6 puntos entre validación y test (0.865 vs. 0.719) evidencia overfitting atribuible al tamaño reducido del dataset (271 imágenes). Escalar a las $\sim$60 clases del catálogo completo con mayor cantidad de imágenes por clase es la principal línea de trabajo futuro para mejorar la capacidad de generalización.
+
+  \item La metodología propuesta es reproducible y extensible: el mismo protocolo de captura, pipeline de augmentation y arquitectura de modelo pueden aplicarse para escalar el catálogo sin cambios en la arquitectura del sistema. El código fuente y los datasets se encuentran disponibles públicamente.
+
+  \item Los resultados validan la viabilidad de un sistema de autocobro basado exclusivamente en visión por computadora como alternativa de bajo costo para organizaciones comunitarias, sin requerir sensores adicionales, infraestructura de nube ni soluciones comerciales costosas.
+\end{enumerate}
 
 \section*{Agradecimientos}
 

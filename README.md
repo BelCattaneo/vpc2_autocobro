@@ -84,6 +84,15 @@ vpc2_autocobro/
 └── pyproject.toml               # Dependencias
 ```
 
+## Dataset
+
+El dataset anotado (10 clases, formato YOLO v5 PyTorch) está disponible en Google Drive:
+
+- **POC producto individual:** [Google Drive - POC v4](https://drive.google.com/file/d/14hwSRfZ3qvrf3bUaZV5lpnX2ntSKO_dd/view?usp=drive_link)
+- **POC multi-producto:** Exportado desde [Roboflow](https://universe.roboflow.com/belns-workspace/poc-zdqcq)
+
+Extraer en `data/poc_10_clases/` o `data/poc_multiproduct/` manteniendo la estructura `train/`, `val/`, `test/` con subdirectorios `images/` y `labels/`.
+
 ## Setup
 
 ### Requisitos
