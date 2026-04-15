@@ -12,13 +12,17 @@ git clone https://github.com/BelCattaneo/vpc2_autocobro.git
 cd vpc2_autocobro
 uv sync --all-extras
 
-# 2. Entrenar (POC 10 clases)
+# 2. Descargar dataset desde Drive (ver sección "Dataset")
+# Link: https://drive.google.com/file/d/14hwSRfZ3qvrf3bUaZV5lpnX2ntSKO_dd
+# Extraer en data/poc_multiproduct/ manteniendo estructura train/val/test
+
+# 3. Entrenar (POC 10 clases)
 uv run python src/train.py --data data/poc_multiproduct/data.yaml
 
-# 3. Evaluar
+# 4. Evaluar
 uv run python src/evaluate.py --model runs/train/<exp>/weights/best.pt --data data/poc_multiproduct/data.yaml
 
-# 4. Demo en vivo
+# 5. Demo en vivo
 uv run python src/demo.py --model models/best_multiproduct.pt --source 0
 ```
 
