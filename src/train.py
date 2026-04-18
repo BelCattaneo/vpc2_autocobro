@@ -14,6 +14,8 @@ from datetime import datetime
 
 from ultralytics import YOLO
 
+from utils import resolve_data_yaml
+
 
 BASE_MODELS_DIR = Path(__file__).parent.parent / "models" / "base"
 
@@ -70,8 +72,10 @@ def train_model(
         print(f"Modelo base no encontrado en {model_path}, descargando...")
         model = YOLO(model_name)
 
+    data_resolved = resolve_data_yaml(data_yaml)
+
     results = model.train(
-        data=str(data_yaml),
+        data=str(data_resolved),
         epochs=epochs,
         imgsz=imgsz,
         batch=batch,
