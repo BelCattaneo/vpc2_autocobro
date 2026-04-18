@@ -190,6 +190,19 @@ Opciones del script:
 | --batch | 16 | Tamaño del batch |
 | --imgsz | 640 | Tamaño de imagen |
 | --data | data/poc_10_clases/data.yaml | Config del dataset |
+| --seed | 42 | Seed para reproducibilidad |
+
+### Comparar estrategias de data augmentation
+
+```bash
+# Compara 3 configs: sin augmentation, default Ultralytics, agresivo
+uv run python src/compare_augmentation.py --data data/poc_multiproduct/data.yaml
+
+# Con menos épocas para test rápido
+uv run python src/compare_augmentation.py --data data/poc_multiproduct/data.yaml --epochs 10
+```
+
+Resultados en `runs/augmentation_comparison/comparison_results.json`.
 
 ### 4. Ejecutar inferencia
 
