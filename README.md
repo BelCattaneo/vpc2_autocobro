@@ -133,7 +133,7 @@ uv run python src/evaluate.py --model models/best_multiproduct.pt --data data/po
 uv run python src/evaluate.py --model models/best_multiproduct.pt --data data/train_v5.yaml --split test
 ```
 
-Outputs en `runs/evaluate/<nombre>/`: `confusion_matrix.png`, `BoxPR_curve.png`, `BoxF1_curve.png`, `metrics.json`.
+Outputs en `evaluate/<nombre>/`: `confusion_matrix.png`, `BoxPR_curve.png`, `BoxF1_curve.png`, `metrics.json`.
 
 ### Demo
 

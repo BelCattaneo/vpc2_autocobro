@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script de evaluación formal para modelos YOLOv10.
+Script de evaluación formal para modelos de detección (YOLO, RT-DETR, etc.).
 
 Genera métricas de detección (mAP, precision, recall por clase),
 confusion matrix, curvas precision-recall y F1, y guarda todo en JSON.
@@ -26,11 +26,11 @@ def evaluate_model(
     batch: int = 16,
     conf: float = 0.001,
     iou: float = 0.6,
-    project: str = "runs/evaluate",
+    project: str = "evaluate",
     name: str | None = None,
 ) -> dict:
     """
-    Evalúa un modelo YOLOv10 y genera métricas y plots.
+    Evalúa un modelo de detección y genera métricas y plots.
 
     Args:
         model_path: Path al modelo entrenado (.pt)
@@ -55,7 +55,8 @@ def evaluate_model(
         name = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     print("=" * 60)
-    print("Evaluación YOLOv10")
+    model_name = Path(model_path).stem
+    print(f"Evaluación de modelo: {model_name}")
     print("=" * 60)
     print(f"  Modelo:    {model_path}")
     print(f"  Dataset:   {data_yaml}")
@@ -138,7 +139,7 @@ def evaluate_model(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Evalúa un modelo YOLOv10 y genera métricas formales"
+        description="Evalúa un modelo de detección y genera métricas formales"
     )
     parser.add_argument(
         "--model", "-m",
@@ -186,8 +187,8 @@ def main():
     parser.add_argument(
         "--project",
         type=str,
-        default="runs/evaluate",
-        help="Directorio para guardar resultados (default: runs/evaluate)"
+        default="evaluate",
+        help="Directorio para guardar resultados (default: evaluate)"
     )
     parser.add_argument(
         "--name", "-n",
