@@ -3,9 +3,11 @@
 Script de entrenamiento YOLO.
 
 Uso:
-    python train.py                           # Entrena con configuración por defecto
-    python train.py --model yolo11s.pt        # Usa modelo small
-    python train.py --epochs 200 --batch 32   # Personaliza hiperparámetros
+    python train.py                                        # Entrena con configuración por defecto
+    python train.py --model yolo11s.pt                     # Usa modelo small
+    python train.py --augmentation none                    # Sin data augmentation
+    python train.py --augmentation aggressive              # Augmentation agresivo
+    python train.py --epochs 200 --batch 32                # Personaliza hiperparámetros
 """
 
 import argparse
@@ -14,7 +16,7 @@ from datetime import datetime
 
 from ultralytics import YOLO
 
-from utils import resolve_data_yaml
+from utils import AUGMENTATION_CONFIGS, get_device, resolve_data_yaml
 
 
 BASE_MODELS_DIR = Path(__file__).parent.parent / "models" / "base"
@@ -29,6 +31,7 @@ def train_model(
     project: str = "runs/train",
     name: str | None = None,
     seed: int = 42,
+    augmentation: str = "default",
 ) -> Path:
     """
     Entrena un modelo YOLO en el dataset especificado.
@@ -42,25 +45,34 @@ def train_model(
         project: Directorio del proyecto para guardar resultados
         name: Nombre del experimento (default: timestamp)
         seed: Seed para reproducibilidad (default: 42)
+        augmentation: Estrategia de augmentation (none/default/aggressive)
 
     Returns:
         Path al mejor modelo entrenado
     """
     if not data_yaml.exists():
         raise FileNotFoundError(f"No se encontró el archivo: {data_yaml}")
+    if augmentation not in AUGMENTATION_CONFIGS:
+        raise ValueError(f"Augmentation '{augmentation}' no válido. Opciones: {list(AUGMENTATION_CONFIGS.keys())}")
 
     if name is None:
         name = datetime.now().strftime("%Y%m%d_%H%M%S")
 
+    device = get_device()
+    aug_config = AUGMENTATION_CONFIGS[augmentation]
+
     print("=" * 60)
     print("Entrenamiento YOLO")
     print("=" * 60)
-    print(f"  Modelo base:  {model_name}")
-    print(f"  Dataset:      {data_yaml}")
-    print(f"  Épocas:       {epochs}")
-    print(f"  Imagen:       {imgsz}x{imgsz}")
-    print(f"  Batch:        {batch}")
-    print(f"  Proyecto:     {project}/{name}")
+    print(f"  Modelo base:    {model_name}")
+    print(f"  Dataset:        {data_yaml}")
+    print(f"  Augmentation:   {augmentation} ({aug_config['description']})")
+    print(f"  Device:         {device}")
+    print(f"  Épocas:         {epochs}")
+    print(f"  Imagen:         {imgsz}x{imgsz}")
+    print(f"  Batch:          {batch}")
+    print(f"  Seed:           {seed}")
+    print(f"  Proyecto:       {project}/{name}")
     print("=" * 60)
     print()
 
@@ -74,19 +86,25 @@ def train_model(
 
     data_resolved = resolve_data_yaml(data_yaml)
 
-    results = model.train(
-        data=str(data_resolved),
-        epochs=epochs,
-        imgsz=imgsz,
-        batch=batch,
-        project=project,
-        name=name,
-        patience=20,
-        save=True,
-        plots=True,
-        verbose=True,
-        seed=seed,
-    )
+    train_kwargs = {
+        "data": str(data_resolved),
+        "epochs": epochs,
+        "imgsz": imgsz,
+        "batch": batch,
+        "project": project,
+        "name": name,
+        "patience": 20,
+        "save": True,
+        "plots": True,
+        "verbose": True,
+        "seed": seed,
+        "device": device,
+        **aug_config["params"],
+    }
+    if device == "mps":
+        train_kwargs["amp"] = False
+
+    results = model.train(**train_kwargs)
 
     best_model_path = Path(project) / name / "weights" / "best.pt"
 
@@ -152,6 +170,13 @@ def main():
         default=42,
         help="Seed para reproducibilidad (default: 42)"
     )
+    parser.add_argument(
+        "--augmentation",
+        type=str,
+        default="default",
+        choices=list(AUGMENTATION_CONFIGS.keys()),
+        help="Estrategia de data augmentation (default: default)"
+    )
 
     args = parser.parse_args()
 
@@ -164,6 +189,7 @@ def main():
         project=args.project,
         name=args.name,
         seed=args.seed,
+        augmentation=args.augmentation,
     )
 
     print(f"Para usar el modelo entrenado:")
