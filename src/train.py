@@ -26,6 +26,7 @@ def train_model(
     batch: int = 16,
     project: str = "runs/train",
     name: str | None = None,
+    seed: int = 42,
 ) -> Path:
     """
     Entrena un modelo YOLOv10 en el dataset especificado.
@@ -38,6 +39,7 @@ def train_model(
         batch: Tamaño del batch
         project: Directorio del proyecto para guardar resultados
         name: Nombre del experimento (default: timestamp)
+        seed: Seed para reproducibilidad (default: 42)
 
     Returns:
         Path al mejor modelo entrenado
@@ -79,6 +81,7 @@ def train_model(
         save=True,
         plots=True,
         verbose=True,
+        seed=seed,
     )
 
     best_model_path = Path(project) / name / "weights" / "best.pt"
@@ -140,6 +143,12 @@ def main():
         default=None,
         help="Nombre del experimento (default: timestamp)"
     )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Seed para reproducibilidad (default: 42)"
+    )
 
     args = parser.parse_args()
 
@@ -151,6 +160,7 @@ def main():
         batch=args.batch,
         project=args.project,
         name=args.name,
+        seed=args.seed,
     )
 
     print(f"Para usar el modelo entrenado:")

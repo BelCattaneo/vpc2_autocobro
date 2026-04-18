@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script de evaluación formal para modelos YOLOv10.
+Script de evaluación formal para modelos de detección (YOLO, RT-DETR, etc.).
 
 Genera métricas de detección (mAP, precision, recall por clase),
 confusion matrix, curvas precision-recall y F1, y guarda todo en JSON.
@@ -12,6 +12,7 @@ Uso:
 
 import argparse
 import json
+import shutil
 from datetime import datetime
 from pathlib import Path
 
@@ -26,11 +27,12 @@ def evaluate_model(
     batch: int = 16,
     conf: float = 0.001,
     iou: float = 0.6,
-    project: str = "runs/evaluate",
+    project: str = "evaluate",
     name: str | None = None,
+    paper_figures: Path | None = None,
 ) -> dict:
     """
-    Evalúa un modelo YOLOv10 y genera métricas y plots.
+    Evalúa un modelo de detección y genera métricas y plots.
 
     Args:
         model_path: Path al modelo entrenado (.pt)
@@ -55,7 +57,8 @@ def evaluate_model(
         name = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     print("=" * 60)
-    print("Evaluación YOLOv10")
+    model_name = Path(model_path).stem
+    print(f"Evaluación de modelo: {model_name}")
     print("=" * 60)
     print(f"  Modelo:    {model_path}")
     print(f"  Dataset:   {data_yaml}")
@@ -131,6 +134,23 @@ def evaluate_model(
 
     print(f"  Métricas guardadas en: {metrics_path}")
     print(f"  Plots guardados en:    {output_dir}/")
+
+    if paper_figures:
+        paper_figures.mkdir(parents=True, exist_ok=True)
+        figure_map = {
+            "confusion_matrix_normalized.png": "confusion_matrix.png",
+            "BoxPR_curve.png": "pr_curve.png",
+            "BoxF1_curve.png": "f1_curve.png",
+        }
+        copied = []
+        for src_name, dst_name in figure_map.items():
+            src = output_dir / src_name
+            if src.exists():
+                shutil.copy2(src, paper_figures / dst_name)
+                copied.append(dst_name)
+        if copied:
+            print(f"  Figuras copiadas a:    {paper_figures}/ ({', '.join(copied)})")
+
     print("=" * 60)
 
     return metrics
@@ -138,7 +158,7 @@ def evaluate_model(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Evalúa un modelo YOLOv10 y genera métricas formales"
+        description="Evalúa un modelo de detección y genera métricas formales"
     )
     parser.add_argument(
         "--model", "-m",
@@ -186,14 +206,20 @@ def main():
     parser.add_argument(
         "--project",
         type=str,
-        default="runs/evaluate",
-        help="Directorio para guardar resultados (default: runs/evaluate)"
+        default="evaluate",
+        help="Directorio para guardar resultados (default: evaluate)"
     )
     parser.add_argument(
         "--name", "-n",
         type=str,
         default=None,
         help="Nombre del experimento (default: timestamp)"
+    )
+    parser.add_argument(
+        "--paper-figures",
+        type=Path,
+        default=None,
+        help="Copiar figuras a este directorio (ej: paper/figures)"
     )
 
     args = parser.parse_args()
@@ -208,6 +234,7 @@ def main():
         iou=args.iou,
         project=args.project,
         name=args.name,
+        paper_figures=args.paper_figures,
     )
 
 

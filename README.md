@@ -2,7 +2,7 @@
 
 Trabajo Práctico Final - Visión por Computadora II (CEIA FIUBA)
 
-**Autores:** Cattaneo, Ciarrapico, Pryszczuk (Grupo 4)
+Autores: Cattaneo, Ciarrapico, Pryszczuk (Grupo 4)
 
 ## Quick Start
 
@@ -36,10 +36,10 @@ Sistema de detección y clasificación de productos en tiempo real para autocobr
 
 | Métrica | Validación | Test |
 |---------|-----------|------|
-| mAP@0.5 | 0.865 | **0.719** |
-| mAP@0.5:0.95 | 0.768 | 0.628 |
-| Precision | 0.879 | 0.560 |
-| Recall | 0.772 | 0.677 |
+| mAP@0.5 | 0.924 | 0.806 |
+| mAP@0.5:0.95 | 0.826 | 0.717 |
+| Precision | 0.903 | 0.778 |
+| Recall | 0.834 | 0.670 |
 
 Evaluado sobre 10 clases con YOLOv10n (2.3M parámetros). Inferencia >15 FPS en laptop, ~10 FPS en Raspberry Pi 5.
 
@@ -60,11 +60,11 @@ Cámara USB → Frame OpenCV → YOLOv10n → ProductTracker (IoU) → Video ano
 
 ## Stack Técnico
 
-- **Modelo:** YOLOv10n (nano, para Raspberry Pi 5)
-- **Framework:** Ultralytics + PyTorch
-- **Computer Vision:** OpenCV
-- **Dependencias:** uv (gestor de paquetes)
-- **Anotación:** Roboflow (formato YOLO v5 PyTorch)
+- Modelo: YOLOv10n (nano, para Raspberry Pi 5)
+- Framework: Ultralytics + PyTorch
+- Computer Vision: OpenCV
+- Dependencias: uv (gestor de paquetes)
+- Anotación: Roboflow (formato YOLO v5 PyTorch)
 
 ## Estructura del Proyecto
 
@@ -92,8 +92,8 @@ vpc2_autocobro/
 
 El dataset anotado (10 clases, formato YOLO v5 PyTorch) está disponible en Google Drive:
 
-- **POC producto individual:** [Google Drive - POC v4](https://drive.google.com/file/d/14hwSRfZ3qvrf3bUaZV5lpnX2ntSKO_dd/view?usp=drive_link)
-- **POC multi-producto:** Exportado desde [Roboflow](https://universe.roboflow.com/belns-workspace/poc-zdqcq)
+- POC producto individual: [Google Drive - POC v4](https://drive.google.com/file/d/14hwSRfZ3qvrf3bUaZV5lpnX2ntSKO_dd/view?usp=drive_link)
+- POC multi-producto: Exportado desde [Roboflow](https://universe.roboflow.com/belns-workspace/poc-zdqcq)
 
 Extraer en `data/poc_10_clases/` o `data/poc_multiproduct/` manteniendo la estructura `train/`, `val/`, `test/` con subdirectorios `images/` y `labels/`.
 
@@ -142,10 +142,13 @@ Resultados en `runs/augmentation_comparison/comparison_results.json`.
 uv run python src/evaluate.py --model models/best_multiproduct.pt --data data/poc_multiproduct/data.yaml
 
 # Evaluar sobre test split
-uv run python src/evaluate.py --model models/best_multiproduct.pt --data data/train_v5.yaml --split test
+uv run python src/evaluate.py --model models/best_multiproduct.pt --data data/poc_multiproduct/data.yaml --split test
+
+# Evaluar y copiar figuras al paper
+uv run python src/evaluate.py --model models/best_multiproduct.pt --data data/poc_multiproduct/data.yaml --split test --paper-figures paper/figures
 ```
 
-Outputs en `runs/evaluate/<nombre>/`: `confusion_matrix.png`, `BoxPR_curve.png`, `BoxF1_curve.png`, `metrics.json`.
+Outputs en `evaluate/<nombre>/`: `confusion_matrix.png`, `BoxPR_curve.png`, `BoxF1_curve.png`, `metrics.json`.
 
 ### Demo
 
@@ -161,9 +164,9 @@ uv run python src/demo.py --model models/best_multiproduct.pt --source 0 --no-sa
 ```
 
 Visualización:
-- **Verde:** producto confirmado (alta confianza, visto ≥5 frames)
-- **Amarillo:** producto pendiente de confirmación
-- **Naranja:** advertencia (baja confianza, requiere revisión)
+- Verde: producto confirmado (alta confianza, visto ≥5 frames)
+- Amarillo: producto pendiente de confirmación
+- Naranja: advertencia (baja confianza, requiere revisión)
 
 ### Inferencia rápida
 

@@ -1,14 +1,14 @@
 % This template has been tested with IEEEtran of 2015.
 
-% !TeX spellcheck = en-US
-% LTeX: language=en-US
+% !TeX spellcheck = es
+% LTeX: language=es
 % !TeX encoding = utf8
 % !TeX program = lualatex
 % !BIB program = bibtex
 % -*- coding:utf-8 mod:LaTeX -*-
 
 % DO NOT DOWNLOAD IEEEtran.cls - Use the one of your LaTeX distribution
-\documentclass[conference,a4paper,english]{IEEEtran}[2015/08/26]
+\documentclass[conference,a4paper]{IEEEtran}[2015/08/26]
 
 % Balance the last page (disabled - requires full TeX Live)
 % \usepackage{pbalance}
@@ -22,14 +22,10 @@
 %   - https://tex.stackexchange.com/a/166791/9075
 \usepackage{upquote}
 
-% Set English as language and allow to write hyphenated"=words
-%
-% Even though `american`, `english` and `USenglish` are synonyms for babel package (according to https://tex.stackexchange.com/questions/12775/babel-english-american-usenglish), the llncs document class is prepared to avoid the overriding of certain names (such as "Abstract." -> "Abstract" or "Fig." -> "Figure") when using `english`, but not when using the other 2.
-% english has to go last to set it as default language
-\usepackage[ngerman,main=english]{babel}
-%
-% Hint by http://tex.stackexchange.com/a/321066/9075 -> enable "= as dashes
-\addto\extrasenglish{\languageshorthands{ngerman}\useshorthands{"}}
+% Idioma español como principal
+\usepackage[english,main=spanish]{babel}
+\addto\captionsspanish{\renewcommand{\tablename}{Tabla}}
+\addto\captionsspanish{\renewcommand{\abstractname}{Resumen}}
 
 % Links behave as they should. Enables "\url{...}" for URL typesettings.
 % Allow URL breaks also at a hyphen, even though it might be confusing: Is the "-" part of the address or just a hyphen?
@@ -385,10 +381,16 @@
 % That means, "Figure 5" is a full link instead of just "5".
 \usepackage[capitalise,nameinlink,noabbrev]{cleveref}
 
-\crefname{listing}{Listing}{Listings}
-\Crefname{listing}{Listing}{Listings}
-\crefname{lstlisting}{Listing}{Listings}
-\Crefname{lstlisting}{Listing}{Listings}
+\crefname{figure}{Figura}{Figuras}
+\Crefname{figure}{Figura}{Figuras}
+\crefname{table}{Tabla}{Tablas}
+\Crefname{table}{Tabla}{Tablas}
+\crefname{section}{Sección}{Secciones}
+\Crefname{section}{Sección}{Secciones}
+\crefname{listing}{Listado}{Listados}
+\Crefname{listing}{Listado}{Listados}
+\crefname{lstlisting}{Listado}{Listados}
+\Crefname{lstlisting}{Listado}{Listados}
 
 % lipsum, blindtext, mwe, currfile, tcolorbox removed (template examples deleted)
 
@@ -478,7 +480,7 @@
 \fi
 
 \begin{abstract}
-Este trabajo presenta un sistema de detección y clasificación de productos en tiempo real orientado al autocobro en despensas comunitarias. El sistema utiliza YOLOv10, una arquitectura de detección single-stage que realiza localización y clasificación en un único paso de inferencia, eliminando la necesidad de una etapa separada de clasificación. Se construyó un dataset propio con 10 clases de productos típicos de despensa, capturados bajo condiciones controladas con vista cenital. El pipeline incorpora una lógica de registro estable basada en seguimiento multi-frame mediante Intersection over Union (IoU), que requiere $N$ detecciones consecutivas antes de confirmar un producto, reduciendo falsos positivos por variación de confianza entre cuadros. La prueba de concepto sobre 10 clases obtuvo un mAP@0.5 de 0.924 en escenas multi-producto, con inferencia en tiempo real superior a 15 FPS. La metodología propuesta es reproducible y extensible a catálogos de mayor escala. El código y el dataset se encuentran disponibles públicamente.
+Este trabajo presenta un sistema de detección y clasificación de productos en tiempo real orientado al autocobro en despensas comunitarias. El sistema utiliza YOLOv10, una arquitectura de detección single-stage que realiza localización y clasificación en un único paso de inferencia, eliminando la necesidad de una etapa separada de clasificación. Se construyó un dataset propio con 10 clases de productos típicos de despensa, capturados bajo condiciones controladas con vista cenital. El pipeline incorpora una lógica de registro estable basada en seguimiento multi-frame mediante Intersection over Union (IoU), que requiere $N$ detecciones consecutivas antes de confirmar un producto, reduciendo falsos positivos por variación de confianza entre cuadros. La prueba de concepto sobre 10 clases obtuvo un mAP@0.5 de 0.924 en validación y 0.806 en test sobre escenas multi-producto, con inferencia en tiempo real superior a 15 FPS (Frames Per Second). La metodología propuesta es reproducible y extensible a catálogos de mayor escala. El código y el dataset se encuentran disponibles públicamente.\footnote{\url{https://github.com/BelCattaneo/vpc2_autocobro}}
 \end{abstract}
 
 % For peer review papers, you can put extra information on the cover
@@ -496,7 +498,7 @@ Este trabajo presenta un sistema de detección y clasificación de productos en 
 
 Las organizaciones comunitarias, como mutuales y cooperativas, frecuentemente gestionan despensas de bajo costo para sus asociados. En estos contextos, el cobro manual de productos implica tiempos de espera, errores de registro y dependencia de personal dedicado. Las soluciones comerciales de autocobro basadas en visión por computadora, como Amazon Go~\cite{amazongo}, requieren infraestructuras costosas y no están diseñadas para adaptarse a catálogos acotados y variables.
 
-Los avances recientes en detección de objetos en tiempo real, impulsados por la familia de arquitecturas YOLO~\cite{redmon2016yolo, redmon2018yolov3, wang2024yolov10}, han democratizado el acceso a modelos de alta precisión y baja latencia ejecutables en hardware de bajo costo. En el ámbito de productos de retail, el dataset RPC~\cite{wei2019rpc} demostró la viabilidad del reconocimiento automático de productos en contextos de supermercado a gran escala. Más recientemente, Fuchs et al.~\cite{fuchs2019grocerystore} presentaron un sistema de reconocimiento de productos de supermercado basado en fine-tuning de redes convolucionales sobre un dataset propio de productos suecos, logrando accuracy superior al 85\% en un catálogo de 81 clases, demostrando la viabilidad del enfoque para catálogos acotados similares al de este trabajo.
+Los avances recientes en detección de objetos en tiempo real, impulsados por la familia de arquitecturas YOLO (You Only Look Once)~\cite{redmon2016yolo, redmon2018yolov3, wang2024yolov10}, han democratizado el acceso a modelos de alta precisión y baja latencia ejecutables en hardware de bajo costo. En el ámbito de productos de retail, el dataset RPC (Retail Product Checkout)~\cite{wei2019rpc} demostró la viabilidad del reconocimiento automático de productos en contextos de supermercado a gran escala. Más recientemente, Fuchs et al.~\cite{fuchs2019grocerystore} presentaron un sistema de reconocimiento de productos de supermercado basado en fine-tuning de redes convolucionales sobre un dataset propio de productos suecos, logrando accuracy superior al 85\% en un catálogo de 81 clases, demostrando la viabilidad del enfoque para catálogos acotados similares al de este trabajo.
 
 Este trabajo propone un sistema de autocobro de bajo costo para despensas comunitarias, basado en la detección y clasificación de productos mediante fine-tuning de YOLOv10~\cite{wang2024yolov10} sobre un dataset propio. Las contribuciones principales son:
 \begin{enumerate}
@@ -506,7 +508,7 @@ Este trabajo propone un sistema de autocobro de bajo costo para despensas comuni
   \item Una metodología extensible y documentada, que permite escalar el catálogo sin cambios en la arquitectura del sistema.
 \end{enumerate}
 
-El resto del paper está organizado de la siguiente manera: la \cref{sec:trabajos-relacionados} presenta los trabajos relacionados. La \cref{sec:metodologia} describe la metodología propuesta, incluyendo el dataset, modelo y pipeline de inferencia. La \cref{sec:experimentos} presenta los experimentos realizados y sus resultados. Finalmente, la \cref{sec:conclusiones} presenta las conclusiones y trabajo futuro.
+El resto del trabajo está organizado de la siguiente manera: la \cref{sec:trabajos-relacionados} presenta los trabajos relacionados. La \cref{sec:metodologia} describe la metodología propuesta, incluyendo el dataset, modelo y pipeline de inferencia. La \cref{sec:experimentos} presenta los experimentos realizados y sus resultados. La \cref{sec:discusion} discute la interpretación de los resultados, limitaciones y trabajo futuro. Finalmente, la \cref{sec:conclusiones} presenta las conclusiones.
 
 %% ===========================================================================
 \section{Trabajos Relacionados}
@@ -514,7 +516,7 @@ El resto del paper está organizado de la siguiente manera: la \cref{sec:trabajo
 
 \subsection{Detección de Objetos}
 
-La detección de objetos evolucionó desde arquitecturas two-stage, como R-CNN~\cite{girshick2014rcnn}, que separan la propuesta de regiones de su clasificación, hacia enfoques single-stage que unifican ambas etapas en una única pasada. La familia YOLO~\cite{redmon2016yolo} consolidó el paradigma single-stage al demostrar que la velocidad de inferencia y la precisión no son excluyentes. Versiones posteriores, como YOLOv3~\cite{redmon2018yolov3} y YOLOv4~\cite{bochkovskiy2020yolov4}, incorporaron mejoras en el backbone, la detección multi-escala y técnicas de data augmentation como mosaic. YOLOv10~\cite{wang2024yolov10}, la arquitectura utilizada en este trabajo, introduce un esquema de entrenamiento con asignaciones duales consistentes que elimina la necesidad de Non-Maximum Suppression (NMS) en tiempo de inferencia, reduciendo la latencia de extremo a extremo.
+La detección de objetos evolucionó desde arquitecturas two-stage, como R-CNN (Region-based Convolutional Neural Network)~\cite{girshick2014rcnn}, que separan la propuesta de regiones de su clasificación, hacia enfoques single-stage que unifican ambas etapas en una única pasada. La familia YOLO~\cite{redmon2016yolo} consolidó el paradigma single-stage al demostrar que la velocidad de inferencia y la precisión no son excluyentes. Versiones posteriores, como YOLOv3~\cite{redmon2018yolov3} y YOLOv4~\cite{bochkovskiy2020yolov4}, incorporaron mejoras en el backbone, la detección multi-escala y técnicas de data augmentation como mosaic. YOLOv10~\cite{wang2024yolov10}, la arquitectura utilizada en este trabajo, introduce un esquema de entrenamiento con asignaciones duales consistentes que elimina la necesidad de Non-Maximum Suppression (NMS) en tiempo de inferencia, reduciendo la latencia de extremo a extremo.
 
 Como alternativa transformer-based, RT-DETR~\cite{zhao2023rtdetr} alcanza precisiones comparables con detección en tiempo real, pero con mayor complejidad computacional y requerimientos de memoria que lo hacen menos adecuado para hardware embebido de bajo costo.
 
@@ -526,7 +528,7 @@ A diferencia de estos trabajos, que asumen catálogos de escala masiva y dataset
 
 \subsection{Sistemas de Autocobro}
 
-Las soluciones comerciales de autocobro, como Amazon Go~\cite{amazongo}, combinan visión por computadora con sensores de peso y fusión de datos de múltiples cámaras para lograr una experiencia sin fricción. Su costo de implementación y la complejidad de infraestructura requerida las hace inaccesibles para organizaciones comunitarias pequeñas. El enfoque estándar de menor costo es el escaneo manual de códigos de barras, que elimina la automatización del reconocimiento pero evita los costos de infraestructura. Este trabajo propone un punto intermedio: un sistema CV-only de bajo costo que automatiza el reconocimiento de productos sobre una superficie de control, sin requerir sensores adicionales ni servidores en la nube.
+Las soluciones comerciales de autocobro, como Amazon Go~\cite{amazongo}, combinan visión por computadora con sensores de peso y fusión de datos de múltiples cámaras para lograr una experiencia sin fricción. Su costo de implementación y la complejidad de infraestructura requerida las hace inaccesibles para organizaciones comunitarias pequeñas. El enfoque estándar de menor costo es el escaneo manual de códigos de barras, que elimina la automatización del reconocimiento pero evita los costos de infraestructura. Este trabajo propone un punto intermedio: un sistema basado exclusivamente en visión por computadora (CV) de bajo costo que automatiza el reconocimiento de productos sobre una superficie de control, sin requerir sensores adicionales ni servidores en la nube.
 
 %% ===========================================================================
 \section{Metodología}
@@ -544,7 +546,9 @@ El sistema se compone de cuatro etapas secuenciales (ver \cref{fig:arquitectura}
   \label{fig:arquitectura}
 \end{figure}
 
-Se evaluó una arquitectura alternativa two-stage, con un detector genérico seguido de un clasificador especializado. Se descartó porque aproximadamente duplica la latencia de inferencia y agrega complejidad de mantenimiento sin beneficio en precisión para un catálogo acotado. El enfoque single-stage con YOLOv10 es suficiente para el dominio del problema y cumple con el requerimiento de tiempo real ($>$15 FPS).
+Se evaluó una arquitectura alternativa two-stage, con un detector genérico seguido de un clasificador especializado. Se descartó porque aproximadamente duplica la latencia de inferencia y agrega complejidad de mantenimiento sin beneficio en precisión para un catálogo acotado. El enfoque single-stage con YOLOv10 es suficiente para el dominio del problema y cumple con el requerimiento de tiempo real ($>$15~FPS).
+
+El hardware de despliegue consiste en una Raspberry Pi~5 (8~GB) como dispositivo de cómputo, una webcam USB montada en posición cenital sobre la mesa de control, y un monitor conectado por HDMI que muestra el video anotado con la lista de productos en tiempo real. El costo total estimado del hardware es de 140--190~USD, significativamente inferior al de soluciones comerciales de autocobro.
 
 \subsection{Dataset}
 \label{subsec:dataset}
@@ -563,22 +567,22 @@ Se definieron múltiples tipos de escenas para capturar la variabilidad del caso
 
 \subsubsection{Anotación}
 
-Las imágenes se anotaron mediante la plataforma Roboflow~\cite{roboflow2023} con bounding boxes en formato YOLO v5 PyTorch. Se realizó una revisión manual de las anotaciones para verificar la consistencia de las etiquetas y la precisión de las cajas delimitadoras. El dataset final comprende 271 imágenes anotadas: 102 en el dataset de producto individual y 169 en el dataset multi-producto.
+Las imágenes se anotaron mediante la plataforma Roboflow~\cite{roboflow2023} con bounding boxes en formato YOLO v5 PyTorch. Se realizó una revisión manual de las anotaciones para verificar la consistencia de las etiquetas y la precisión de las cajas delimitadoras. El dataset final comprende 296 imágenes anotadas: 127 en el dataset de producto individual (102 train, 13 val, 12 test) y 169 en el dataset multi-producto (132 train, 19 val, 18 test).
 
 \subsubsection{Data Augmentation}
 
-Se utilizaron las técnicas de data augmentation integradas en el framework Ultralytics~\cite{jocher2023ultralytics}, cuyas configuraciones por defecto han sido validadas extensivamente en la literatura de YOLO~\cite{bochkovskiy2020yolov4, shorten2019augmentation}. Las técnicas aplicadas incluyen: mosaic (probabilidad 1.0), que combina 4 imágenes de entrenamiento en una sola, incrementando la diversidad contextual; flip horizontal ($p=0.5$); y jitter de HSV (hue $= 0.015$, saturación $= 0.7$, valor $= 0.4$), que introduce variabilidad fotométrica. Adicionalmente, Roboflow aplicó auto-orientación y redimensionamiento a $640 \times 640$ píxeles con relleno por reflexión de bordes.
+Se utilizaron las técnicas de data augmentation integradas en el framework Ultralytics~\cite{jocher2023ultralytics}, cuyas configuraciones por defecto han sido validadas extensivamente en la literatura de YOLO~\cite{bochkovskiy2020yolov4, shorten2019augmentation}. Las técnicas aplicadas incluyen: mosaic (probabilidad 1.0), que combina 4 imágenes de entrenamiento en una sola, incrementando la diversidad contextual; flip horizontal ($p=0.5$); y jitter de HSV (Hue, Saturation, Value; hue $= 0.015$, saturación $= 0.7$, valor $= 0.4$), que introduce variabilidad fotométrica. Adicionalmente, Roboflow aplicó auto-orientación y redimensionamiento a $640 \times 640$ píxeles con relleno por reflexión de bordes.
 
 \subsubsection{División del Dataset}
 
-El dataset se dividió en conjuntos de entrenamiento y validación. El dataset de producto individual contiene 102 imágenes de entrenamiento y 13 de validación. El dataset multi-producto contiene 132 imágenes de entrenamiento y 19 de validación (exportado desde Roboflow con división automática). No se definió un conjunto de test separado, lo cual se reconoce como una limitación del presente trabajo.
+El dataset se dividió en conjuntos de entrenamiento, validación y test. El dataset de producto individual contiene 102 imágenes de entrenamiento, 13 de validación y 12 de test. El dataset multi-producto contiene 132 imágenes de entrenamiento, 19 de validación y 18 de test (exportado desde Roboflow con división automática).
 
 \subsection{Modelo}
 \label{subsec:modelo}
 
 \subsubsection{Selección de YOLOv10}
 
-Se eligió YOLOv10~\cite{wang2024yolov10} por su diseño NMS-free (Non-Maximum Suppression-free), que elimina el post-procesamiento de supresión de detecciones duplicadas en tiempo de inferencia. Esto reduce la latencia de extremo a extremo en comparación con versiones anteriores de la familia YOLO~\cite{jocher2023ultralytics}. Frente a alternativas transformer-based como RT-DETR~\cite{zhao2023rtdetr}, YOLOv10 ofrece un tradeoff latencia-accuracy superior para hardware de bajo costo, con menor consumo de memoria y menor complejidad de implementación.
+Se eligió YOLOv10~\cite{wang2024yolov10} por su diseño NMS-free, que elimina el post-procesamiento de supresión de detecciones duplicadas en tiempo de inferencia. Esto reduce la latencia de extremo a extremo en comparación con versiones anteriores de la familia YOLO~\cite{jocher2023ultralytics}. Frente a alternativas transformer-based como RT-DETR~\cite{zhao2023rtdetr}, YOLOv10 ofrece un tradeoff latencia-accuracy superior para hardware de bajo costo, con menor consumo de memoria y menor complejidad de implementación.
 
 \subsubsection{Variante Seleccionada}
 
@@ -586,7 +590,7 @@ Se seleccionó la variante nano (YOLOv10n, 2.3M parámetros) para cumplir con el
 
 \subsubsection{Configuración de Entrenamiento}
 
-El modelo se entrenó mediante transfer learning~\cite{yosinski2014transferable} a partir de pesos pre-entrenados en COCO, utilizando el framework Ultralytics~\cite{jocher2023ultralytics}. La configuración de entrenamiento fue: 100 épocas, batch size de 16, tamaño de imagen de $640 \times 640$ píxeles, y early stopping con paciencia de 20 épocas. Se utilizó el optimizador SGD con los hiperparámetros por defecto del framework (learning rate $= 0.01$, momentum $= 0.937$, weight decay $= 0.0005$). El entrenamiento se realizó en una laptop con Apple Silicon (MPS backend) con \texttt{amp=False} para evitar incompatibilidades con la precisión mixta en dicha plataforma.
+El modelo se entrenó mediante transfer learning~\cite{yosinski2014transferable} a partir de pesos pre-entrenados en COCO (Common Objects in Context), utilizando el framework Ultralytics~\cite{jocher2023ultralytics}. La configuración de entrenamiento fue: 100 épocas, batch size de 16, tamaño de imagen de $640 \times 640$ píxeles, y early stopping con paciencia de 20 épocas. Se utilizó el optimizador SGD (Stochastic Gradient Descent) con los hiperparámetros por defecto del framework (learning rate $= 0.01$, momentum $= 0.937$, weight decay $= 0.0005$). El entrenamiento se realizó en una laptop con Apple Silicon (backend MPS) con \texttt{amp=False} para evitar incompatibilidades con la precisión mixta en dicha plataforma.
 
 \subsection{Pipeline de Inferencia}
 \label{subsec:pipeline}
@@ -623,7 +627,7 @@ Para determinar el modelo óptimo a desplegar en la Raspberry Pi 5, se realizó 
 \centering
 \caption{Comparativa de rendimiento en validación --- Dataset 10 clases.}
 \label{tab:resultados-benchmark}
-\begin{tabular}{lccccc}
+\begin{tabular}{lcccc}
 \hline
 \textbf{Modelo} & \textbf{Parámetros} & \textbf{Inferencia} & \textbf{mAP@0.5} & \textbf{mAP@0.5:0.95} \\
 \hline
@@ -676,7 +680,7 @@ Para validar la capacidad de generalización del modelo ganador (YOLO11n), se lo
 \centering
 \caption{Resultados de evaluación sobre Test Split --- YOLO11n.}
 \label{tab:resultados-test}
-\begin{tabular}{lcc}
+\begin{tabular}{lc}
 \hline
 \textbf{Métrica} & \textbf{Valor} \\
 \hline
@@ -723,21 +727,21 @@ Se validó el sistema completo con un escenario simulado de checkout: partiendo 
 
 \subsection{Interpretación de Resultados}
 
-El modelo alcanzó un mAP@0.5 de 0.865 en validación y 0.719 en el test split independiente, superando el umbral mínimo de 0.70 definido en la planificación. La diferencia entre validación y test (14.6 puntos) sugiere cierto overfitting atribuible al tamaño reducido del dataset. Si bien la comparación directa con el dataset RPC~\cite{wei2019rpc} (que reporta mAP entre 0.50 y 0.80 sobre 200 categorías) no es directa por la diferencia de escala, los resultados confirman la viabilidad del enfoque para un catálogo acotado.
+El modelo multi-producto alcanzó un mAP@0.5 de 0.924 en validación y 0.806 en el test split independiente, superando el umbral mínimo de 0.70 definido en la planificación. La diferencia entre validación y test (11.8 puntos) sugiere cierto overfitting atribuible al tamaño reducido del dataset. Si bien la comparación directa con el dataset RPC~\cite{wei2019rpc} (que reporta mAP entre 0.50 y 0.80 sobre 200 categorías) no es directa por la diferencia de escala, los resultados confirman la viabilidad del enfoque para un catálogo acotado.
 
 \subsection{Limitaciones}
 
 El presente trabajo tiene las siguientes limitaciones:
 \begin{itemize}
-  \item \textbf{Escala del dataset:} Solo se evaluaron 10 de las $\sim$60 clases del catálogo completo de la despensa, con un total de 271 imágenes anotadas.
+  \item \textbf{Escala del dataset:} Solo se evaluaron 10 de las $\sim$60 clases del catálogo completo de la despensa, con un total de 296 imágenes anotadas.
   \item \textbf{Condiciones controladas:} Las imágenes se capturaron bajo iluminación y fondo uniformes. No se evaluó el rendimiento bajo condiciones de iluminación variable.
-  \item \textbf{Diferencia validación-test:} El gap de 14.6 puntos de mAP@0.5 entre validación (0.865) y test (0.719) sugiere overfitting por el tamaño reducido del dataset, mitigable con mayor cantidad de imágenes.
+  \item \textbf{Diferencia validación-test:} El gap de 11.8 puntos de mAP@0.5 entre validación (0.924) y test (0.806) sugiere overfitting por el tamaño reducido del dataset, mitigable con mayor cantidad de imágenes.
   \item \textbf{Métricas de sistema pendientes:} No se midieron métricas end-to-end (order-level accuracy, duplicate rate, miss rate) sobre un benchmark estandarizado.
 \end{itemize}
 
 \subsection{Trabajo Futuro}
 
-Las líneas de trabajo futuro incluyen: (1)~escalar el dataset a las $\sim$60 clases del catálogo completo, manteniendo el mismo protocolo de captura y augmentation; (2)~generar un split de test formal y métricas de sistema completas; (3)~evaluar el rendimiento bajo condiciones de iluminación variable y fondos no controlados; (4)~desplegar el sistema en Raspberry Pi~5 para validación en condiciones reales de operación; y (5)~integrar el módulo de detección con el sistema de gestión de la mutual para automatizar el cobro.
+Las líneas de trabajo futuro incluyen: (1)~escalar el dataset a las $\sim$60 clases del catálogo completo, manteniendo el mismo protocolo de captura y augmentation; (2)~definir métricas de sistema end-to-end (order-level accuracy, duplicate rate, miss rate) sobre un benchmark estandarizado; (3)~evaluar el rendimiento bajo condiciones de iluminación variable y fondos no controlados; (4)~desplegar el sistema en Raspberry Pi~5 para validación en condiciones reales de operación; y (5)~integrar el módulo de detección con el sistema de gestión de la mutual para automatizar el cobro.
 
 %% ===========================================================================
 \section{Conclusiones}
@@ -746,7 +750,7 @@ Las líneas de trabajo futuro incluyen: (1)~escalar el dataset a las $\sim$60 cl
 A partir del diseño, implementación y evaluación del sistema de autocobro propuesto, se derivan las siguientes conclusiones:
 
 \begin{enumerate}
-  \item El fine-tuning de YOLOv10n sobre un dataset propio de 10 clases de productos de despensa alcanzó un mAP@0.5 de 0.865 en validación y 0.719 en el test split independiente, superando el umbral mínimo de 0.70 establecido para el proyecto y confirmando la viabilidad del enfoque single-stage para este dominio.
+  \item El fine-tuning de YOLOv10n sobre un dataset propio de 10 clases de productos de despensa alcanzó un mAP@0.5 de 0.924 en validación y 0.806 en el test split independiente, superando el umbral mínimo de 0.70 establecido para el proyecto y confirmando la viabilidad del enfoque single-stage para este dominio.
 
   \item La arquitectura single-stage con YOLOv10n (2.3M parámetros) permite inferencia en tiempo real superior a 15~FPS en laptop y $\sim$10~FPS en Raspberry Pi~5, cumpliendo los requisitos de latencia para una experiencia de usuario fluida sin requerir hardware especializado.
 
@@ -754,7 +758,7 @@ A partir del diseño, implementación y evaluación del sistema de autocobro pro
 
   \item El data augmentation resultó crítico para la generalización del modelo: sin augmentation, el mAP@0.5 en test cae a 0.512 con un recall de apenas 0.376. Las técnicas por defecto de Ultralytics (mosaic, flip horizontal, jitter HSV) incrementaron el mAP en test en más de 25 puntos porcentuales.
 
-  \item La diferencia de 14.6 puntos entre validación y test (0.865 vs. 0.719) evidencia overfitting atribuible al tamaño reducido del dataset (271 imágenes). Escalar a las $\sim$60 clases del catálogo completo con mayor cantidad de imágenes por clase es la principal línea de trabajo futuro para mejorar la capacidad de generalización.
+  \item La diferencia de 11.8 puntos entre validación y test (0.924 vs. 0.806) evidencia overfitting atribuible al tamaño reducido del dataset (296 imágenes). Escalar a las $\sim$60 clases del catálogo completo con mayor cantidad de imágenes por clase es la principal línea de trabajo futuro para mejorar la capacidad de generalización.
 
   \item La metodología propuesta es reproducible y extensible: el mismo protocolo de captura, pipeline de augmentation y arquitectura de modelo pueden aplicarse para escalar el catálogo sin cambios en la arquitectura del sistema. El código fuente y los datasets se encuentran disponibles públicamente.
 
