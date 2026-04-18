@@ -60,3 +60,4 @@ logs/
 # uv
 .venv/
 uv.lock
+CLAUDE.md
