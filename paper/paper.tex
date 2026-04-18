@@ -617,91 +617,101 @@ La interfaz de inferencia incluye un panel lateral de 250 píxeles que muestra l
 
 \subsection{Configuración Experimental}
 
-Las métricas de evaluación~\cite{everingham2010pascal} reportadas son: mean Average Precision a IoU $= 0.5$ (mAP@0.5) y a IoU $\in [0.5, 0.95]$ (mAP@0.5:0.95), precision media y recall medio sobre todas las clases. El hardware de entrenamiento e inferencia se detalla en la \cref{subsec:modelo}.
+El entrenamiento y la evaluación se realizaron utilizando un procesador Intel Core i5-6200U sin aceleración gráfica dedicada (GPU), lo que permitió simular restricciones de hardware cercanas a las del entorno de producción. Las métricas de evaluación~\cite{everingham2010pascal} reportadas son: mean Average Precision a IoU $= 0.5$ (mAP@0.5) y a IoU $\in [0.5, 0.95]$ (mAP@0.5:0.95), precision media y recall medio sobre todas las clases.
 
-\subsection{Prueba de Concepto --- Producto Individual}
+\subsection{Benchmark de Arquitecturas (Prueba de Concepto - 10 clases)}
 
-El primer experimento entrenó YOLOv10n sobre el dataset de producto individual (102 imágenes de entrenamiento, 13 de validación, 10 clases). Los resultados de validación se presentan en la \cref{tab:resultados-poc}.
+Para determinar el modelo óptimo a desplegar en la Raspberry Pi 5, se realizó una comparativa de rendimiento entre tres generaciones de arquitecturas ligeras: YOLOv8-Nano, YOLOv10-Nano y YOLO11-Nano. El entrenamiento se realizó sobre el dataset de producto individual (10 clases). Se intentó además entrenar una arquitectura basada en Transformers (RT-DETR-L), pero el proceso se abortó por saturación de memoria (Segmentation Fault), demostrando la inviabilidad de modelos pesados en este hardware. Los resultados de los modelos YOLO se presentan en la \cref{tab:resultados-benchmark}.
 
 \begin{table}[htbp]
 \centering
-\caption{Resultados de validación --- Dataset de producto individual (10 clases).}
-\label{tab:resultados-poc}
-\begin{tabular}{lc}
+\caption{Comparativa de rendimiento en validación --- Dataset 10 clases.}
+\label{tab:resultados-benchmark}
+\begin{tabular}{lccccc}
 \hline
-\textbf{Métrica} & \textbf{Valor} \\
+\textbf{Modelo} & \textbf{Parámetros} & \textbf{Inferencia} & \textbf{mAP@0.5} & \textbf{mAP@0.5:0.95} \\
 \hline
-mAP@0.5          & 0.870 \\
-mAP@0.5:0.95     & 0.820 \\
-Precision         & 0.720 \\
-Recall            & 0.803 \\
+YOLOv8n & 3.0 M & 246.2 ms & \textbf{0.967} & 0.835 \\
+YOLOv10n & \textbf{2.2 M} & 213.0 ms & 0.813 & 0.774 \\
+YOLO11n & 2.5 M & \textbf{205.7 ms} & \textbf{0.967} & \textbf{0.889} \\
 \hline
 \end{tabular}
 \end{table}
 
-Las clases con mejor rendimiento fueron polenta, tomate y yerba (mAP@0.5 $> 0.99$), atribuible a sus formas y colores distintivos. La clase fideos registró el mAP@0.5 más bajo (0.578), probablemente por la mayor variabilidad de los envases.
+Los resultados indican que \textbf{YOLO11n} ofrece el mejor balance para el proyecto. Si bien empata con YOLOv8n en mAP@0.5, lo supera significativamente en la métrica más estricta (mAP@0.5:0.95), logrando además la mayor velocidad de inferencia por imagen. En consecuencia, YOLO11n es seleccionado como la arquitectura base para las siguientes etapas.
 
-\subsection{Prueba de Concepto --- Multi-Producto}
+\subsection{Evaluación sobre Validation Split (YOLO11n)}
 
-El segundo experimento incorporó escenas con múltiples productos simultáneos, incluyendo oclusiones parciales (132 imágenes de entrenamiento, 19 de validación). Los resultados se presentan en la \cref{tab:resultados-multi}.
+Se analizó en detalle el rendimiento del modelo seleccionado (YOLO11n) sobre el split de validación. La \cref{fig:confusion-matrix-val} muestra la matriz de confusión, donde se evidencia que las clases \textit{aceite\_1l}, \textit{polenta} y \textit{tomate} son detectadas con una precisión perfecta. 
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{figures/confusion_matrix_val.png}
+  \caption{Matriz de confusión para el modelo YOLO11n sobre el split de validación. Las filas representan las predicciones y las columnas el ground truth.}
+  \label{fig:confusion-matrix-val}
+\end{figure}
+
+Por el contrario, la clase \textit{fideos} presenta cierta confusión. Evaluando las métricas por clase, \textit{fideos} obtuvo el mAP@0.5 más bajo con 0.828, marcando un fuerte contraste con el 0.995 obtenido por el resto de las clases detectadas de manera individual. 
+
+La \cref{fig:pr-curve-val} presenta las curvas Precision-Recall, ilustrando la alta separabilidad visual en la mayoría de los productos y logrando el mAP@0.5 global de 0.967. 
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{figures/BoxPR_curve_val.png}
+  \caption{Curvas Precision-Recall por clase para el modelo YOLO11n. mAP@0.5 global = 0.967.}
+  \label{fig:pr-curve-val}
+\end{figure}
+
+Finalmente, la \cref{fig:val-pred} ilustra predicciones cualitativas del modelo, evidenciando detecciones con altos niveles de confianza en la correcta ubicación espacial de los productos individuales.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{figures/val_batch0_pred.jpg}
+  \caption{Ejemplos de predicciones (bounding boxes y nivel de confianza) generadas por YOLO11n.}
+  \label{fig:val-pred}
+\end{figure}
+
+
+\subsection{Evaluación Final sobre Test Split (YOLO11n)}
+
+Para validar la capacidad de generalización del modelo ganador (YOLO11n), se lo evaluó sobre un conjunto de test completamente independiente compuesto por 12 imágenes (20 instancias). Los resultados globales alcanzaron un mAP@0.5 de 0.833 y un mAP@0.5:0.95 de 0.755. La \cref{tab:resultados-test} presenta las métricas globales de esta evaluación.
 
 \begin{table}[htbp]
 \centering
-\caption{Resultados de validación --- Dataset multi-producto (10 clases).}
-\label{tab:resultados-multi}
-\begin{tabular}{lc}
-\hline
-\textbf{Métrica} & \textbf{Valor} \\
-\hline
-mAP@0.5          & 0.924 \\
-mAP@0.5:0.95     & 0.826 \\
-Precision         & 0.903 \\
-Recall            & 0.834 \\
-\hline
-\end{tabular}
-\end{table}
-
-La mejora del mAP@0.5 de 0.870 a 0.924 al incorporar escenas multi-producto indica que la mayor diversidad contextual de las imágenes de entrenamiento beneficia la generalización del modelo, incluso con un aumento modesto en la cantidad de datos (de 102 a 132 imágenes de entrenamiento).
-
-\subsection{Evaluación sobre Test Split}
-
-Se evaluó el modelo multi-producto sobre un split de test independiente de 18 imágenes y 50 instancias anotadas (no vistas durante entrenamiento ni validación), obteniendo un mAP@0.5 de 0.806, por encima del umbral mínimo de 0.70 definido en la planificación. La \cref{tab:resultados-test} presenta las métricas globales.
-
-\begin{table}[htbp]
-\centering
-\caption{Resultados de evaluación sobre test split (18 imágenes, 50 instancias).}
+\caption{Resultados de evaluación sobre Test Split --- YOLO11n.}
 \label{tab:resultados-test}
 \begin{tabular}{lc}
 \hline
 \textbf{Métrica} & \textbf{Valor} \\
 \hline
-mAP@0.5          & 0.806 \\
-mAP@0.5:0.95     & 0.717 \\
-Precision         & 0.778 \\
-Recall            & 0.670 \\
+mAP@0.5          & 0.833 \\
+mAP@0.5:0.95     & 0.755 \\
+Precision        & 0.620 \\
+Recall           & 0.688 \\
 \hline
 \end{tabular}
 \end{table}
 
-\subsection{Análisis de Errores}
-
-La \cref{fig:confusion-matrix} muestra la confusion matrix normalizada sobre el test split. Las clases dulce\_de\_leche, miel y tomate alcanzan recall perfecto (1.0), mientras que leche\_entera presenta la mayor tasa de confusión con el fondo (0.33 de miss rate). Los pares aceite\_1l/aceite\_4l y leche\_descremada/leche\_entera no muestran confusión mutua significativa, lo que indica que el modelo distingue atributos de tamaño y variaciones de etiqueta. Las clases yerba\_kalena (mAP@0.5 = 0.625) y polenta (0.634) requieren mayor cantidad de imágenes de entrenamiento para mejorar.
+El análisis de rendimiento por clases revela la alta sensibilidad de las métricas frente a datasets reducidos. Clases como \textit{aceite\_4l}, \textit{fideos}, \textit{miel} y \textit{tomate} lograron detecciones perfectas con un mAP@0.5 de 0.995. Destaca la inclusión de \textit{leche\_descremada} y \textit{miel}, las cuales no poseían representación en el split de validación, demostrando una sólida extracción de características por parte de la arquitectura.
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\linewidth]{figures/confusion_matrix.png}
-  \caption{Confusion matrix normalizada sobre el test split (18 imágenes, 50 instancias). Las filas representan las predicciones y las columnas los ground truth.}
-  \label{fig:confusion-matrix}
+  \includegraphics[width=\linewidth]{figures/test_confusion_matrix.png}
+  \caption{Matriz de confusión para el modelo YOLO11n sobre el Test Split.}
+  \label{fig:test-confusion-matrix}
 \end{figure}
 
-La \cref{fig:pr-curve} presenta las curvas Precision-Recall por clase, evidenciando la variabilidad de rendimiento entre clases con alta separabilidad visual (miel, tomate) y clases con envases similares (fideos, yerba\_kalena).
+Por el contrario, como se observa en la matriz de confusión (\cref{fig:test-confusion-matrix}), \textit{polenta} y \textit{yerba\_kalena} registraron falsos negativos frente al fondo (background), bajando su rendimiento (mAP@0.5 de 0.495). Al contar con muy pocas instancias de estas clases en el conjunto de prueba, cualquier variación visual del envase impacta desproporcionadamente. 
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\linewidth]{figures/pr_curve.png}
-  \caption{Curvas Precision-Recall por clase sobre el test split. mAP@0.5 global = 0.806.}
-  \label{fig:pr-curve}
+  \includegraphics[width=\linewidth]{figures/test_PR_curve.png}
+  \caption{Curvas Precision-Recall por clase sobre el Test Split. mAP@0.5 global = 0.833.}
+  \label{fig:test-pr-curve}
 \end{figure}
+
+La \cref{fig:test-pr-curve} ilustra las curvas Precision-Recall de este examen final, consolidando a YOLO11n como un modelo robusto y preparado para escalar a un dataset de mayor volumen en la siguiente fase del proyecto.
+
 
 \subsection{Rendimiento en Tiempo Real}
 

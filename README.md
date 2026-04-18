@@ -123,6 +123,18 @@ uv run python src/train.py --data data/poc_multiproduct/data.yaml
 uv run python src/train.py --model yolov10n.pt --epochs 200 --batch 32 --data data/poc_multiproduct/data.yaml
 ```
 
+### Comparar estrategias de data augmentation
+
+```bash
+# Compara 3 configs: sin augmentation, default Ultralytics, agresivo
+uv run python src/compare_augmentation.py --data data/poc_multiproduct/data.yaml
+
+# Con menos épocas para test rápido
+uv run python src/compare_augmentation.py --data data/poc_multiproduct/data.yaml --epochs 10
+```
+
+Resultados en `runs/augmentation_comparison/comparison_results.json`.
+
 ### Evaluar
 
 ```bash
