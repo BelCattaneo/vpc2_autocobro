@@ -58,7 +58,7 @@ Total estimado: $140-190 USD
 
 ### Raspberry Pi - Comparación de Modelos
 
-| Modelo | RAM | YOLO FPS (YOLOv10n) | Recomendación |
+| Modelo | RAM | YOLO FPS (YOLO11n) | Recomendación |
 |--------|-----|---------------------|---------------|
 | Pi 4 4GB | 4GB | ~3-5 FPS | Mínimo viable |
 | Pi 4 8GB | 8GB | ~3-5 FPS | Mejor multitarea |
@@ -68,9 +68,9 @@ Total estimado: $140-190 USD
 
 | Variante | Parámetros | FPS en Pi 5 | Precisión | Uso |
 |----------|------------|-------------|-----------|-----|
-| YOLOv10n | 2.3M | ~10 FPS | Menor | Inferencia en Pi |
-| YOLOv10s | 7.2M | ~5 FPS | Media | Con paciencia |
-| YOLOv10m | 15.4M | ~2 FPS | Mayor | No recomendado |
+| YOLO11n | 2.5M | ~10 FPS | Menor | Inferencia en Pi |
+| YOLO11s | 9.4M | ~5 FPS | Media | Con paciencia |
+| YOLO11m | 20.1M | ~2 FPS | Mayor | No recomendado |
 
 Nota: Entrenar con cualquier variante en laptop/cloud, luego deployar el `.pt` al Pi.
 
@@ -394,7 +394,7 @@ ping <ip-del-tablet>
 
 ### YOLO muy lento en Pi
 
-- Usar YOLOv10n (nano) en lugar de versiones más grandes
+- Usar YOLO11n (nano) en lugar de versiones más grandes
 - Reducir resolución de entrada (320x320 en lugar de 640x640)
 - Procesar cada 2-3 frames en lugar de todos
 
