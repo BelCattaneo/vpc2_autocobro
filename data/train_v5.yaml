@@ -1,6 +1,6 @@
-train: /Users/nicocia/Desktop/VpC2/POC.v5i.yolov5pytorch/train/images
-val: /Users/nicocia/Desktop/VpC2/POC.v5i.yolov5pytorch/valid/images
-test: /Users/nicocia/Desktop/VpC2/POC.v5i.yolov5pytorch/test/images
+train: train/images
+val: valid/images
+test: test/images
 
 nc: 10
 names:
@@ -14,3 +14,4 @@ names:
   - polenta
   - tomate
   - yerba_kalena
+path: .

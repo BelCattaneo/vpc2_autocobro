@@ -17,7 +17,17 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+import torch
 from ultralytics import YOLO
+
+
+def get_device() -> str:
+    """Auto-detecta el mejor dispositivo disponible."""
+    if torch.cuda.is_available():
+        return "cuda"
+    if torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
 
 
 # Configuraciones de augmentation a comparar
@@ -79,32 +89,42 @@ def train_config(
     batch: int,
     imgsz: int,
     project: str,
+    seed: int = 42,
+    device: str | None = None,
 ) -> dict:
     """Entrena una configuración y retorna métricas."""
+    if device is None:
+        device = get_device()
+
     print()
     print("=" * 60)
     print(f"Configuración: {config_name}")
     print(f"  {config['description']}")
+    print(f"  Device: {device}")
     print(f"  Parámetros: {config['params']}")
     print("=" * 60)
 
     model = YOLO("yolov10n.pt")
 
-    results = model.train(
-        data=str(data_yaml),
-        epochs=epochs,
-        imgsz=imgsz,
-        batch=batch,
-        project=project,
-        name=config_name,
-        patience=20,
-        save=True,
-        plots=True,
-        verbose=False,
-        device="mps",
-        amp=False,
+    train_kwargs = {
+        "data": str(data_yaml),
+        "epochs": epochs,
+        "imgsz": imgsz,
+        "batch": batch,
+        "project": project,
+        "name": config_name,
+        "patience": 20,
+        "save": True,
+        "plots": True,
+        "verbose": False,
+        "seed": seed,
+        "device": device,
         **config["params"],
-    )
+    }
+    if device == "mps":
+        train_kwargs["amp"] = False
+
+    results = model.train(**train_kwargs)
 
     # Evaluar sobre test split — usar save_dir real de Ultralytics
     save_dir = Path(results.save_dir)
@@ -177,13 +197,22 @@ def main():
         default="runs/augmentation_comparison",
         help="Directorio de resultados (default: runs/augmentation_comparison)",
     )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Seed para reproducibilidad (default: 42)",
+    )
     args = parser.parse_args()
+
+    device = get_device()
 
     print("=" * 60)
     print("Comparación de Data Augmentation — YOLOv10n")
     print("=" * 60)
     print(f"  Dataset:  {args.data}")
     print(f"  Épocas:   {args.epochs}")
+    print(f"  Device:   {device}")
     print(f"  Configs:  {list(CONFIGS.keys())}")
     print("=" * 60)
 
@@ -198,6 +227,8 @@ def main():
             batch=args.batch,
             imgsz=args.imgsz,
             project=args.project,
+            seed=args.seed,
+            device=device,
         )
         all_metrics.append(metrics)
 
