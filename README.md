@@ -30,7 +30,7 @@ uv run python src/demo.py --model models/best_multiproduct.pt --source 0
 
 ## Descripción
 
-Sistema de detección y clasificación de productos en tiempo real para autocobro en una despensa comunitaria. Utiliza YOLOv10n fine-tuneado sobre un dataset propio de 10 clases de productos, con una lógica de registro estable basada en seguimiento multi-frame mediante IoU.
+Sistema de detección y clasificación de productos en tiempo real para autocobro en una despensa comunitaria. Utiliza YOLO11n fine-tuneado sobre un dataset propio de 10 clases de productos, con una lógica de registro estable basada en seguimiento multi-frame mediante IoU.
 
 ## Resultados
 
@@ -41,12 +41,12 @@ Sistema de detección y clasificación de productos en tiempo real para autocobr
 | Precision | 0.903 | 0.778 |
 | Recall | 0.834 | 0.670 |
 
-Evaluado sobre 10 clases con YOLOv10n (2.3M parámetros). Inferencia >15 FPS en laptop, ~10 FPS en Raspberry Pi 5.
+Evaluado sobre 10 clases con YOLO11n (2.5M parámetros). Inferencia >15 FPS en laptop, ~10 FPS en Raspberry Pi 5.
 
 ## Pipeline
 
 ```
-Cámara USB → Frame OpenCV → YOLOv10n → ProductTracker (IoU) → Video anotado + JSON
+Cámara USB → Frame OpenCV → YOLO11n → ProductTracker (IoU) → Video anotado + JSON
                             (Detección +    (Confirmación
                              Clasificación)   multi-frame)
 ```
@@ -60,7 +60,7 @@ Cámara USB → Frame OpenCV → YOLOv10n → ProductTracker (IoU) → Video ano
 
 ## Stack Técnico
 
-- Modelo: YOLOv10n (nano, para Raspberry Pi 5)
+- Modelo: YOLO11n (nano, para Raspberry Pi 5)
 - Framework: Ultralytics + PyTorch
 - Computer Vision: OpenCV
 - Dependencias: uv (gestor de paquetes)
@@ -72,7 +72,7 @@ Cámara USB → Frame OpenCV → YOLOv10n → ProductTracker (IoU) → Video ano
 vpc2_autocobro/
 ├── src/
 │   ├── demo.py                  # Demo principal con tracking y visualización
-│   ├── train.py                 # Entrenamiento YOLOv10
+│   ├── train.py                 # Entrenamiento YOLO11
 │   ├── evaluate.py              # Evaluación formal (mAP, confusion matrix, PR curves)
 │   ├── inference.py             # Inferencia básica
 │   ├── extract_frames.py        # Extracción de frames de video
@@ -116,11 +116,11 @@ uv sync --all-extras     # + jupyter, pandas, matplotlib, seaborn
 ### Entrenar
 
 ```bash
-# Default: YOLOv10n, 100 epochs, batch 16, 640x640
+# Default: YOLO11n, 100 epochs, batch 16, 640x640
 uv run python src/train.py --data data/poc_multiproduct/data.yaml
 
 # Personalizar
-uv run python src/train.py --model yolov10n.pt --epochs 200 --batch 32 --data data/poc_multiproduct/data.yaml
+uv run python src/train.py --model yolo11n.pt --epochs 200 --batch 32 --data data/poc_multiproduct/data.yaml
 ```
 
 ### Comparar estrategias de data augmentation
@@ -218,6 +218,7 @@ Grupo 4 - CEIA FIUBA
 
 ## Referencias
 
+- [YOLO11 - Ultralytics Docs](https://docs.ultralytics.com/models/yolo11/)
 - [YOLOv10: Real-Time End-to-End Object Detection](https://arxiv.org/abs/2405.14458)
 - [RPC: A Large-Scale Retail Product Checkout Dataset](https://arxiv.org/abs/1901.07249)
 - [ByteTrack: Multi-Object Tracking](https://arxiv.org/abs/2110.06864)

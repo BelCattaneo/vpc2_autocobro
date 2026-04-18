@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script de inferencia para YOLOv10.
+Script de inferencia YOLO.
 
 Uso:
     python inference.py --model models/best.pt --source imagen.jpg
@@ -42,7 +42,7 @@ def run_inference(
         raise FileNotFoundError(f"No se encontró el modelo: {model_path}")
 
     print("=" * 60)
-    print("Inferencia YOLOv10")
+    print("Inferencia YOLO")
     print("=" * 60)
     print(f"  Modelo:     {model_path}")
     print(f"  Fuente:     {source}")
@@ -92,7 +92,7 @@ def main():
     default_project = str(Path(__file__).parent.parent / "runs" / "detect")
 
     parser = argparse.ArgumentParser(
-        description="Ejecuta inferencia con un modelo YOLOv10 entrenado"
+        description="Ejecuta inferencia con un modelo YOLO entrenado"
     )
     parser.add_argument(
         "--model", "-m",

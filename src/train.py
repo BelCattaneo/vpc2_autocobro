@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Script de entrenamiento para YOLOv10.
+Script de entrenamiento YOLO.
 
 Uso:
     python train.py                           # Entrena con configuración por defecto
-    python train.py --model yolov10s.pt       # Usa modelo small
+    python train.py --model yolo11s.pt        # Usa modelo small
     python train.py --epochs 200 --batch 32   # Personaliza hiperparámetros
 """
 
@@ -22,7 +22,7 @@ BASE_MODELS_DIR = Path(__file__).parent.parent / "models" / "base"
 
 def train_model(
     data_yaml: Path,
-    model_name: str = "yolov10n.pt",
+    model_name: str = "yolo11n.pt",
     epochs: int = 100,
     imgsz: int = 640,
     batch: int = 16,
@@ -31,11 +31,11 @@ def train_model(
     seed: int = 42,
 ) -> Path:
     """
-    Entrena un modelo YOLOv10 en el dataset especificado.
+    Entrena un modelo YOLO en el dataset especificado.
 
     Args:
         data_yaml: Path al archivo data.yaml del dataset
-        model_name: Modelo base a usar (yolov10n/s/m/b/l/x)
+        model_name: Modelo base a usar (yolo11n/s/m/l/x)
         epochs: Número de épocas de entrenamiento
         imgsz: Tamaño de imagen para entrenamiento
         batch: Tamaño del batch
@@ -53,7 +53,7 @@ def train_model(
         name = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     print("=" * 60)
-    print("Entrenamiento YOLOv10")
+    print("Entrenamiento YOLO")
     print("=" * 60)
     print(f"  Modelo base:  {model_name}")
     print(f"  Dataset:      {data_yaml}")
@@ -102,7 +102,7 @@ def train_model(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Entrena un modelo YOLOv10 para detección de productos"
+        description="Entrena un modelo YOLO para detección de productos"
     )
     parser.add_argument(
         "--data", "-d",
@@ -113,9 +113,8 @@ def main():
     parser.add_argument(
         "--model", "-m",
         type=str,
-        default="yolov10n.pt",
-        choices=["yolov10n.pt", "yolov10s.pt", "yolov10m.pt", "yolov10b.pt", "yolov10l.pt", "yolov10x.pt"],
-        help="Modelo base a usar (default: yolov10n.pt)"
+        default="yolo11n.pt",
+        help="Modelo base a usar (default: yolo11n.pt)"
     )
     parser.add_argument(
         "--epochs", "-e",
