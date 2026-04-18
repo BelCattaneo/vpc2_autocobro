@@ -19,7 +19,7 @@ from pathlib import Path
 
 from ultralytics import YOLO
 
-from utils import AUGMENTATION_AUGMENTATION_CONFIGS, get_device, resolve_data_yaml
+from utils import AUGMENTATION_CONFIGS, get_device, resolve_data_yaml
 
 
 def train_config(

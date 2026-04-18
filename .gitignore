@@ -46,6 +46,7 @@ models/*.onnx
 
 # Pre-trained models (auto-downloaded)
 yolov10*.pt
+yolov11*.pt
 
 # Training runs
 runs/
