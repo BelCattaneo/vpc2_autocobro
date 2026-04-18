@@ -1,14 +1,14 @@
 % This template has been tested with IEEEtran of 2015.
 
-% !TeX spellcheck = en-US
-% LTeX: language=en-US
+% !TeX spellcheck = es
+% LTeX: language=es
 % !TeX encoding = utf8
 % !TeX program = lualatex
 % !BIB program = bibtex
 % -*- coding:utf-8 mod:LaTeX -*-
 
 % DO NOT DOWNLOAD IEEEtran.cls - Use the one of your LaTeX distribution
-\documentclass[conference,a4paper,english]{IEEEtran}[2015/08/26]
+\documentclass[conference,a4paper]{IEEEtran}[2015/08/26]
 
 % Balance the last page (disabled - requires full TeX Live)
 % \usepackage{pbalance}
@@ -22,14 +22,10 @@
 %   - https://tex.stackexchange.com/a/166791/9075
 \usepackage{upquote}
 
-% Set English as language and allow to write hyphenated"=words
-%
-% Even though `american`, `english` and `USenglish` are synonyms for babel package (according to https://tex.stackexchange.com/questions/12775/babel-english-american-usenglish), the llncs document class is prepared to avoid the overriding of certain names (such as "Abstract." -> "Abstract" or "Fig." -> "Figure") when using `english`, but not when using the other 2.
-% english has to go last to set it as default language
-\usepackage[ngerman,main=english]{babel}
-%
-% Hint by http://tex.stackexchange.com/a/321066/9075 -> enable "= as dashes
-\addto\extrasenglish{\languageshorthands{ngerman}\useshorthands{"}}
+% Idioma español como principal
+\usepackage[english,main=spanish]{babel}
+\addto\captionsspanish{\renewcommand{\tablename}{Tabla}}
+\addto\captionsspanish{\renewcommand{\abstractname}{Resumen}}
 
 % Links behave as they should. Enables "\url{...}" for URL typesettings.
 % Allow URL breaks also at a hyphen, even though it might be confusing: Is the "-" part of the address or just a hyphen?
@@ -385,10 +381,16 @@
 % That means, "Figure 5" is a full link instead of just "5".
 \usepackage[capitalise,nameinlink,noabbrev]{cleveref}
 
-\crefname{listing}{Listing}{Listings}
-\Crefname{listing}{Listing}{Listings}
-\crefname{lstlisting}{Listing}{Listings}
-\Crefname{lstlisting}{Listing}{Listings}
+\crefname{figure}{Figura}{Figuras}
+\Crefname{figure}{Figura}{Figuras}
+\crefname{table}{Tabla}{Tablas}
+\Crefname{table}{Tabla}{Tablas}
+\crefname{section}{Sección}{Secciones}
+\Crefname{section}{Sección}{Secciones}
+\crefname{listing}{Listado}{Listados}
+\Crefname{listing}{Listado}{Listados}
+\crefname{lstlisting}{Listado}{Listados}
+\Crefname{lstlisting}{Listado}{Listados}
 
 % lipsum, blindtext, mwe, currfile, tcolorbox removed (template examples deleted)
 
