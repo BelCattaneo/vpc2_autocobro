@@ -36,10 +36,10 @@ Sistema de detección y clasificación de productos en tiempo real para autocobr
 
 | Métrica | Validación | Test |
 |---------|-----------|------|
-| mAP@0.5 | 0.924 | 0.806 |
-| mAP@0.5:0.95 | 0.826 | 0.717 |
-| Precision | 0.903 | 0.778 |
-| Recall | 0.834 | 0.670 |
+| mAP@0.5 | 0.946 | 0.820 |
+| mAP@0.5:0.95 | 0.840 | 0.731 |
+| Precision | 0.944 | 0.874 |
+| Recall | 0.892 | 0.671 |
 
 Evaluado sobre 10 clases con YOLO11n (2.5M parámetros). Inferencia >15 FPS en laptop, ~10 FPS en Raspberry Pi 5.
 
