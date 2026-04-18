@@ -35,7 +35,7 @@ Guía de verificación para el paper del proyecto de autocobro.
 - Sin footnotes
 
 ### 3. Keywords (3-5)
-- Ejemplos: detección de objetos, YOLOv10, autocobro, deep learning, visión por computadora
+- Ejemplos: detección de objetos, YOLO11, autocobro, deep learning, visión por computadora
 
 ### 4. Introduction
 - Contexto del problema (despensa comunitaria, mutual)
