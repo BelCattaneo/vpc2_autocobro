@@ -12,6 +12,7 @@ Uso:
 
 import argparse
 import json
+import shutil
 from datetime import datetime
 from pathlib import Path
 
@@ -28,6 +29,7 @@ def evaluate_model(
     iou: float = 0.6,
     project: str = "evaluate",
     name: str | None = None,
+    paper_figures: Path | None = None,
 ) -> dict:
     """
     Evalúa un modelo de detección y genera métricas y plots.
@@ -132,6 +134,23 @@ def evaluate_model(
 
     print(f"  Métricas guardadas en: {metrics_path}")
     print(f"  Plots guardados en:    {output_dir}/")
+
+    if paper_figures:
+        paper_figures.mkdir(parents=True, exist_ok=True)
+        figure_map = {
+            "confusion_matrix_normalized.png": "confusion_matrix.png",
+            "BoxPR_curve.png": "pr_curve.png",
+            "BoxF1_curve.png": "f1_curve.png",
+        }
+        copied = []
+        for src_name, dst_name in figure_map.items():
+            src = output_dir / src_name
+            if src.exists():
+                shutil.copy2(src, paper_figures / dst_name)
+                copied.append(dst_name)
+        if copied:
+            print(f"  Figuras copiadas a:    {paper_figures}/ ({', '.join(copied)})")
+
     print("=" * 60)
 
     return metrics
@@ -196,6 +215,12 @@ def main():
         default=None,
         help="Nombre del experimento (default: timestamp)"
     )
+    parser.add_argument(
+        "--paper-figures",
+        type=Path,
+        default=None,
+        help="Copiar figuras a este directorio (ej: paper/figures)"
+    )
 
     args = parser.parse_args()
 
@@ -209,6 +234,7 @@ def main():
         iou=args.iou,
         project=args.project,
         name=args.name,
+        paper_figures=args.paper_figures,
     )
 
 
