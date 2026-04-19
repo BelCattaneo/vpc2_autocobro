@@ -50,15 +50,15 @@ Sistema de autocobro para una mutual con despensa comunitaria. Los asociados:
 
 | Opción | Descripción | Pros | Contras |
 |--------|-------------|------|---------|
-| A: Single-stage (elegida) | YOLOv10 fine-tuned con 60 clases | Simple, un solo modelo, fácil debug | Menos flexible si hay clases muy similares |
+| A: Single-stage (elegida) | YOLO fine-tuned con 10 clases (POC) | Simple, un solo modelo, fácil debug | Menos flexible si hay clases muy similares |
 | B: Two-stage | Detector genérico + clasificador separado | Más modular, permite especializar | Mayor complejidad, más latencia |
 
-YOLOv10 hace detección Y clasificación en un solo paso al entrenarse con las 60 clases de productos.
+Se realizó un benchmark entre YOLOv8n, YOLOv10n y YOLO11n. YOLO11n fue seleccionado por ofrecer el mejor mAP@0.5:0.95 (0.889) y la menor latencia de inferencia (205.7 ms). El POC se realizó con 10 clases de productos.
 
 ### Pipeline
 
 ```
-Cámara -> YOLOv10 (detecta + clasifica) -> Lógica de registro -> Output JSON + Video
+Cámara -> YOLO11n (detecta + clasifica) -> Lógica de registro (IoU) -> Output JSON + Video
 ```
 
 ### Componentes
@@ -66,8 +66,8 @@ Cámara -> YOLOv10 (detecta + clasifica) -> Lógica de registro -> Output JSON +
 | Etapa | Componente | Descripción |
 |-------|------------|-------------|
 | 1. Input | Cámara 1080p | Video en tiempo real o archivo |
-| 2. Detección + Clasificación | YOLOv10 (60 clases) | Localiza Y clasifica productos en un paso |
-| 3. Tracking (opcional) | ByteTrack | Asigna IDs persistentes, solo si baseline insuficiente |
+| 2. Detección + Clasificación | YOLO11n (10 clases POC) | Localiza Y clasifica productos en un paso |
+| 3. Tracking | IoU-based (simple) | Confirmación multi-frame, sin ByteTrack (productos estáticos) |
 | 4. Output | JSON + Video | Estado de mesa + visualización |
 
 ---
@@ -96,7 +96,7 @@ Webcam (cenital) ──USB──▶ Raspberry Pi 5 ◀──WiFi──▶ Tablet
 ### Modelo YOLO para Pi
 
 - Entrenar: cualquier variante (n/s/m) en laptop/cloud
-- Deployar en Pi: YOLOv10n para ~10 FPS
+- Deployar en Pi: YOLO11n para ~10 FPS
 
 Ver documentación completa: [docs/hardware_setup.md](docs/hardware_setup.md)
 
@@ -169,7 +169,7 @@ Tareas:
 - 0.1 Investigación y recolección de papers relevantes
 - 0.2 Armar setup mínimo de prueba
 - 0.3 Conseguir 5-10 productos de prueba
-- 0.4 Probar YOLOv10 pre-entrenado (COCO)
+- 0.4 Probar YOLO pre-entrenado (COCO)
 - 0.5 Crear mini-dataset (~10 imágenes por producto)
 - 0.6 Entrenar modelo mínimo (fine-tuning)
 - 0.7 Evaluar viabilidad y documentar aprendizajes
@@ -212,7 +212,7 @@ Tipos de escenas:
 ### EPIC-2: Modelo
 
 Tareas:
-- 2.1 Seleccionar arquitectura (YOLOv10n/s/m)
+- 2.1 Seleccionar arquitectura (benchmark YOLOv8n/v10n/11n -> YOLO11n seleccionado)
 - 2.2 Configurar entrenamiento
 - 2.3 Entrenar modelo inicial
 - 2.4 Evaluar métricas (mAP, precision, recall)
@@ -315,7 +315,7 @@ Métricas de sistema:
 | Tiempo insuficiente para tracking | Alta | Bajo | Ya está como opcional en EPIC-5 |
 | Paper sin suficiente contenido técnico | Baja | Medio | Papers ya identificados |
 | Oclusiones por mano del usuario | Media | Medio | Probar en EPIC-0 |
-| Latencia inaceptable | Baja | Alto | Usar YOLOv10n |
+| Latencia inaceptable | Baja | Alto | Usar YOLO11n (205.7 ms/img) |
 
 ---
 
@@ -332,13 +332,45 @@ Métricas de sistema:
 ## Referencias
 
 Papers:
+- [YOLO11 - Ultralytics Docs](https://docs.ultralytics.com/models/yolo11/)
 - [YOLOv10: Real-Time End-to-End Object Detection](https://arxiv.org/abs/2405.14458)
 - [RPC: A Large-Scale Retail Product Checkout Dataset](https://arxiv.org/abs/1901.07249)
 - [ByteTrack: Multi-Object Tracking](https://arxiv.org/abs/2110.06864)
 - [RT-DETR: DETRs Beat YOLOs](https://arxiv.org/abs/2304.08069)
 
 Documentación:
-- [Ultralytics (YOLOv10)](https://docs.ultralytics.com/)
+- [Ultralytics YOLO](https://docs.ultralytics.com/)
 - [Roboflow (anotación)](https://roboflow.com/)
 - [uv (gestor de dependencias)](https://docs.astral.sh/uv/)
 - [IEEE Conference Templates](https://www.ieee.org/conferences/publishing/templates.html)
+
+---
+
+## Estado Actual (18 abril 2026)
+
+### Completado
+
+- EPIC-0: POC con 10 clases, mAP@0.5 > 0.70 alcanzado
+- EPIC-1: Dataset anotado en Roboflow (296 imágenes: 127 individual + 169 multi-producto)
+- EPIC-2: Benchmark de arquitecturas (YOLOv8n, YOLOv10n, YOLO11n) -> YOLO11n seleccionado
+- EPIC-2: Comparación de data augmentation (sin aug, default, agresivo) -> default Ultralytics seleccionado
+- EPIC-3: Pipeline completo con tracking IoU y visualización (demo.py)
+- EPIC-4: Paper IEEE completo (secciones escritas, 14 referencias, figuras incluidas)
+- EPIC-4: README actualizado con instrucciones reproducibles
+
+### Decisiones tomadas vs planificación original
+
+| Planificado | Ejecutado | Justificación |
+|-------------|-----------|---------------|
+| YOLOv10 como arquitectura | YOLO11n seleccionado via benchmark | Mejor mAP@0.5:0.95 y menor latencia |
+| ~60 clases | 10 clases (POC) | Alcance realista para el timeline |
+| ByteTrack (opcional) | Tracking simple por IoU | Productos estáticos no requieren predicción de movimiento |
+| Tablet via Flask | Monitor HDMI directo | Simplifica deployment |
+
+### Métricas alcanzadas (YOLO11n, dataset individual 10 clases)
+
+| Métrica | Val | Test | Umbral mínimo |
+|---------|-----|------|---------------|
+| mAP@0.5 | 0.967 | 0.833 | > 0.70 |
+| mAP@0.5:0.95 | 0.889 | 0.755 | - |
+| FPS (laptop) | >15 | >15 | > 15 |

@@ -25,10 +25,11 @@ class ProductTracker:
     Evita el flickering y mantiene un conteo estable de productos en la mesa.
     """
 
-    def __init__(self, confirm_frames: int = 5, disappear_frames: int = 10, iou_threshold: float = 0.3):
+    def __init__(self, confirm_frames: int = 5, disappear_frames: int = 10, iou_threshold: float = 0.3, pending_patience: int = 3):
         self.confirm_frames = confirm_frames
         self.disappear_frames = disappear_frames
         self.iou_threshold = iou_threshold
+        self.pending_patience = pending_patience
 
         self.next_id = 0
         self.pending = {}  # {id: {"class": str, "bbox": tuple, "count": int, "conf": float}}
@@ -118,7 +119,14 @@ class ProductTracker:
             new_detections.append(det)
 
         # Eliminar pending no vistos (ANTES de agregar nuevos)
-        pending_to_remove = [pid for pid in self.pending if pid not in matched_pending]
+        pending_to_remove = []
+        for pid in self.pending:
+            if pid not in matched_pending:
+                self.pending[pid]["missed"] += 1
+                if self.pending[pid]["missed"] > self.pending_patience:
+                    pending_to_remove.append(pid)
+            else:
+                self.pending[pid]["missed"] = 0
         for pid in pending_to_remove:
             del self.pending[pid]
 
@@ -129,6 +137,7 @@ class ProductTracker:
                 "bbox": det["bbox"],
                 "conf": det["conf"],
                 "count": 1,
+                "missed": 0,
             }
             self.next_id += 1
 
@@ -270,6 +279,7 @@ def run_demo(
     conf_threshold: float = 0.5,
     warn_threshold: float = 0.15,
     confirm_frames: int = 5,
+    pending_patience: int = 3,
     save_video: bool = True,
     output_json: Path | None = None,
 ) -> dict:
@@ -345,7 +355,7 @@ def run_demo(
         output_json = output_dir / f"{timestamp_str}.json"
 
     # Inicializar tracker
-    tracker = ProductTracker(confirm_frames=confirm_frames)
+    tracker = ProductTracker(confirm_frames=confirm_frames, pending_patience=pending_patience)
 
     print()
     print("Procesando... (presiona 'q' para terminar)")
@@ -396,10 +406,8 @@ def run_demo(
 
             # Filtrar warnings: excluir detecciones que coinciden espacialmente con confirmados
             def overlaps_with_confirmed(warning_det, confirmed_items, iou_thresh=0.3):
-                """Check if warning detection overlaps with any confirmed item of same class."""
+                """Check if warning detection overlaps with any confirmed item."""
                 for conf_item in confirmed_items:
-                    if conf_item["class"] != warning_det["class"]:
-                        continue
                     # Calculate IoU
                     box1, box2 = warning_det["bbox"], conf_item["bbox"]
                     x1 = max(box1[0], box2[0])
@@ -521,6 +529,12 @@ def main():
         help="Frames consecutivos para confirmar detección (default: 5)",
     )
     parser.add_argument(
+        "--pending-patience",
+        type=int,
+        default=3,
+        help="Frames sin detección tolerados antes de descartar un pending (default: 3)",
+    )
+    parser.add_argument(
         "--output", "-o",
         type=Path,
         default=None,
@@ -540,6 +554,7 @@ def main():
         conf_threshold=args.conf,
         warn_threshold=args.warn_conf,
         confirm_frames=args.confirm_frames,
+        pending_patience=args.pending_patience,
         save_video=not args.no_save,
         output_json=args.output,
     )

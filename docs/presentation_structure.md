@@ -27,7 +27,7 @@ Peso: 50% de la nota final
 ### 1. Problema y Contexto (1 min)
 
 Slide 1: Título
-- Detección de Productos en Tiempo Real para Autocobro usando YOLOv10
+- Detección de Productos en Tiempo Real para Autocobro usando YOLO11
 - Autores: María Belén Cattaneo, Nicolás Valentín Ciarrapico, Sabrina Daiana Pryszczuk
 - CEIA FIUBA - Visión por Computadora II
 
@@ -45,7 +45,7 @@ Slide 3: Nuestra Solución
 - Identifica productos automáticamente
 - Genera lista de compras
 
-Slide 4: Por qué YOLOv10
+Slide 4: Por qué YOLO11
 - Single-stage: detección + clasificación en un paso
 - Tiempo real: >15 FPS
 - State-of-the-art en detección de objetos
@@ -80,7 +80,7 @@ Slide 8: Anotación y Augmentation
 
 ### 4. Modelo (2 min)
 
-Slide 9: Arquitectura YOLOv10
+Slide 9: Arquitectura YOLO11
 - Diagrama simplificado de la arquitectura
 - Variante elegida (n/s/m) y justificación
 - Input → Backbone → Neck → Head → Output
@@ -193,7 +193,7 @@ Slide 20: Trabajo Futuro
 
 ## Preguntas Esperadas
 
-1. Por qué eligieron YOLOv10 y no otra arquitectura?
+1. Por qué eligieron YOLO11 y no otra arquitectura?
 2. Cómo manejan productos muy similares?
 3. Qué pasa si un producto no está en el dataset?
 4. Cuánto tiempo tomó el entrenamiento?
@@ -224,7 +224,7 @@ Slide 20: Trabajo Futuro
 - [ ] Diagrama de arquitectura del sistema
 - [ ] Foto del setup de captura
 - [ ] Ejemplos de productos (grid de imágenes)
-- [ ] Diagrama de YOLOv10 simplificado
+- [ ] Diagrama de YOLO11 simplificado
 - [ ] Curvas de entrenamiento
 - [ ] Matriz de confusión
 - [ ] Screenshots de la interfaz

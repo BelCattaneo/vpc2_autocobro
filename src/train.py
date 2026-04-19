@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """
-Script de entrenamiento para YOLOv10.
+Script de entrenamiento YOLO.
 
 Uso:
-    python train.py                           # Entrena con configuración por defecto
-    python train.py --model yolov10s.pt       # Usa modelo small
-    python train.py --epochs 200 --batch 32   # Personaliza hiperparámetros
+    python train.py                                        # Entrena con configuración por defecto
+    python train.py --model yolo11s.pt                     # Usa modelo small
+    python train.py --augmentation none                    # Sin data augmentation
+    python train.py --augmentation aggressive              # Augmentation agresivo
+    python train.py --epochs 200 --batch 32                # Personaliza hiperparámetros
 """
 
 import argparse
@@ -14,51 +16,63 @@ from datetime import datetime
 
 from ultralytics import YOLO
 
+from utils import AUGMENTATION_CONFIGS, get_device, resolve_data_yaml
+
 
 BASE_MODELS_DIR = Path(__file__).parent.parent / "models" / "base"
 
 
 def train_model(
     data_yaml: Path,
-    model_name: str = "yolov10n.pt",
+    model_name: str = "yolo11n.pt",
     epochs: int = 100,
     imgsz: int = 640,
     batch: int = 16,
     project: str = "runs/train",
     name: str | None = None,
     seed: int = 42,
+    augmentation: str = "default",
 ) -> Path:
     """
-    Entrena un modelo YOLOv10 en el dataset especificado.
+    Entrena un modelo YOLO en el dataset especificado.
 
     Args:
         data_yaml: Path al archivo data.yaml del dataset
-        model_name: Modelo base a usar (yolov10n/s/m/b/l/x)
+        model_name: Modelo base a usar (yolo11n/s/m/l/x)
         epochs: Número de épocas de entrenamiento
         imgsz: Tamaño de imagen para entrenamiento
         batch: Tamaño del batch
         project: Directorio del proyecto para guardar resultados
         name: Nombre del experimento (default: timestamp)
         seed: Seed para reproducibilidad (default: 42)
+        augmentation: Estrategia de augmentation (none/default/aggressive)
 
     Returns:
         Path al mejor modelo entrenado
     """
     if not data_yaml.exists():
         raise FileNotFoundError(f"No se encontró el archivo: {data_yaml}")
+    if augmentation not in AUGMENTATION_CONFIGS:
+        raise ValueError(f"Augmentation '{augmentation}' no válido. Opciones: {list(AUGMENTATION_CONFIGS.keys())}")
 
     if name is None:
         name = datetime.now().strftime("%Y%m%d_%H%M%S")
 
+    device = get_device()
+    aug_config = AUGMENTATION_CONFIGS[augmentation]
+
     print("=" * 60)
-    print("Entrenamiento YOLOv10")
+    print("Entrenamiento YOLO")
     print("=" * 60)
-    print(f"  Modelo base:  {model_name}")
-    print(f"  Dataset:      {data_yaml}")
-    print(f"  Épocas:       {epochs}")
-    print(f"  Imagen:       {imgsz}x{imgsz}")
-    print(f"  Batch:        {batch}")
-    print(f"  Proyecto:     {project}/{name}")
+    print(f"  Modelo base:    {model_name}")
+    print(f"  Dataset:        {data_yaml}")
+    print(f"  Augmentation:   {augmentation} ({aug_config['description']})")
+    print(f"  Device:         {device}")
+    print(f"  Épocas:         {epochs}")
+    print(f"  Imagen:         {imgsz}x{imgsz}")
+    print(f"  Batch:          {batch}")
+    print(f"  Seed:           {seed}")
+    print(f"  Proyecto:       {project}/{name}")
     print("=" * 60)
     print()
 
@@ -70,19 +84,27 @@ def train_model(
         print(f"Modelo base no encontrado en {model_path}, descargando...")
         model = YOLO(model_name)
 
-    results = model.train(
-        data=str(data_yaml),
-        epochs=epochs,
-        imgsz=imgsz,
-        batch=batch,
-        project=project,
-        name=name,
-        patience=20,
-        save=True,
-        plots=True,
-        verbose=True,
-        seed=seed,
-    )
+    data_resolved = resolve_data_yaml(data_yaml)
+
+    train_kwargs = {
+        "data": str(data_resolved),
+        "epochs": epochs,
+        "imgsz": imgsz,
+        "batch": batch,
+        "project": project,
+        "name": name,
+        "patience": 20,
+        "save": True,
+        "plots": True,
+        "verbose": True,
+        "seed": seed,
+        "device": device,
+        **aug_config["params"],
+    }
+    if device == "mps":
+        train_kwargs["amp"] = False
+
+    results = model.train(**train_kwargs)
 
     best_model_path = Path(project) / name / "weights" / "best.pt"
 
@@ -98,7 +120,7 @@ def train_model(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Entrena un modelo YOLOv10 para detección de productos"
+        description="Entrena un modelo YOLO para detección de productos"
     )
     parser.add_argument(
         "--data", "-d",
@@ -109,9 +131,8 @@ def main():
     parser.add_argument(
         "--model", "-m",
         type=str,
-        default="yolov10n.pt",
-        choices=["yolov10n.pt", "yolov10s.pt", "yolov10m.pt", "yolov10b.pt", "yolov10l.pt", "yolov10x.pt"],
-        help="Modelo base a usar (default: yolov10n.pt)"
+        default="yolo11n.pt",
+        help="Modelo base a usar (default: yolo11n.pt)"
     )
     parser.add_argument(
         "--epochs", "-e",
@@ -149,6 +170,13 @@ def main():
         default=42,
         help="Seed para reproducibilidad (default: 42)"
     )
+    parser.add_argument(
+        "--augmentation",
+        type=str,
+        default="default",
+        choices=list(AUGMENTATION_CONFIGS.keys()),
+        help="Estrategia de data augmentation (default: default)"
+    )
 
     args = parser.parse_args()
 
@@ -161,6 +189,7 @@ def main():
         project=args.project,
         name=args.name,
         seed=args.seed,
+        augmentation=args.augmentation,
     )
 
     print(f"Para usar el modelo entrenado:")

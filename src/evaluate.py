@@ -18,6 +18,8 @@ from pathlib import Path
 
 from ultralytics import YOLO
 
+from utils import resolve_data_yaml
+
 
 def evaluate_model(
     model_path: Path,
@@ -68,9 +70,10 @@ def evaluate_model(
     print()
 
     model = YOLO(str(model_path))
+    data_resolved = resolve_data_yaml(data_yaml)
 
     results = model.val(
-        data=str(data_yaml),
+        data=str(data_resolved),
         split=split,
         imgsz=imgsz,
         batch=batch,

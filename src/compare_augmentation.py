@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comparación de estrategias de data augmentation para YOLOv10n.
+Comparación de estrategias de data augmentation.
 
 Entrena 3 configuraciones sobre el mismo dataset y compara métricas:
   1. Sin augmentation (baseline)
@@ -8,8 +8,8 @@ Entrena 3 configuraciones sobre el mismo dataset y compara métricas:
   3. Augmentation agresivo (mosaic + mixup + rotación + más HSV jitter)
 
 Uso:
-    python compare_augmentation.py --data data/train_v5.yaml
-    python compare_augmentation.py --data data/train_v5.yaml --epochs 50
+    python compare_augmentation.py --data data/poc_multiproduct/data.yaml
+    python compare_augmentation.py --data data/poc_multiproduct/data.yaml --model yolo11n.pt --epochs 50
 """
 
 import argparse
@@ -17,74 +17,16 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-import torch
 from ultralytics import YOLO
 
-
-def get_device() -> str:
-    """Auto-detecta el mejor dispositivo disponible."""
-    if torch.cuda.is_available():
-        return "cuda"
-    if torch.backends.mps.is_available():
-        return "mps"
-    return "cpu"
-
-
-# Configuraciones de augmentation a comparar
-CONFIGS = {
-    "sin_augmentation": {
-        "description": "Sin augmentation — baseline para medir impacto",
-        "params": {
-            "augment": False,
-            "mosaic": 0.0,
-            "mixup": 0.0,
-            "flipud": 0.0,
-            "fliplr": 0.0,
-            "hsv_h": 0.0,
-            "hsv_s": 0.0,
-            "hsv_v": 0.0,
-            "degrees": 0.0,
-            "scale": 0.0,
-            "translate": 0.0,
-        },
-    },
-    "default_ultralytics": {
-        "description": "Augmentation por defecto de Ultralytics (mosaic, flip, HSV)",
-        "params": {
-            "mosaic": 1.0,
-            "mixup": 0.0,
-            "flipud": 0.0,
-            "fliplr": 0.5,
-            "hsv_h": 0.015,
-            "hsv_s": 0.7,
-            "hsv_v": 0.4,
-            "degrees": 0.0,
-            "scale": 0.5,
-            "translate": 0.1,
-        },
-    },
-    "augmentation_agresivo": {
-        "description": "Augmentation agresivo (mosaic + mixup + rotación + HSV fuerte)",
-        "params": {
-            "mosaic": 1.0,
-            "mixup": 0.3,
-            "flipud": 0.5,
-            "fliplr": 0.5,
-            "hsv_h": 0.02,
-            "hsv_s": 0.9,
-            "hsv_v": 0.5,
-            "degrees": 15.0,
-            "scale": 0.7,
-            "translate": 0.2,
-        },
-    },
-}
+from utils import AUGMENTATION_CONFIGS, get_device, resolve_data_yaml
 
 
 def train_config(
     config_name: str,
     config: dict,
     data_yaml: Path,
+    model_name: str,
     epochs: int,
     batch: int,
     imgsz: int,
@@ -100,14 +42,17 @@ def train_config(
     print("=" * 60)
     print(f"Configuración: {config_name}")
     print(f"  {config['description']}")
+    print(f"  Modelo: {model_name}")
     print(f"  Device: {device}")
     print(f"  Parámetros: {config['params']}")
     print("=" * 60)
 
-    model = YOLO("yolov10n.pt")
+    model = YOLO(model_name)
+
+    data_resolved = resolve_data_yaml(data_yaml)
 
     train_kwargs = {
-        "data": str(data_yaml),
+        "data": str(data_resolved),
         "epochs": epochs,
         "imgsz": imgsz,
         "batch": batch,
@@ -132,7 +77,7 @@ def train_config(
     best_model = YOLO(str(best_path))
 
     val_results = best_model.val(
-        data=str(data_yaml),
+        data=str(data_resolved),
         split="test",
         plots=True,
         verbose=False,
@@ -165,13 +110,19 @@ def train_config(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Compara estrategias de data augmentation para YOLOv10n"
+        description="Compara estrategias de data augmentation"
+    )
+    parser.add_argument(
+        "--model", "-m",
+        type=str,
+        default="yolo11n.pt",
+        help="Modelo base a usar (default: yolo11n.pt)",
     )
     parser.add_argument(
         "--data", "-d",
         type=Path,
-        default=Path("data/train_v5.yaml"),
-        help="Path al data.yaml (default: data/train_v5.yaml)",
+        default=Path("data/poc_multiproduct/data.yaml"),
+        help="Path al data.yaml (default: data/poc_multiproduct/data.yaml)",
     )
     parser.add_argument(
         "--epochs", "-e",
@@ -208,21 +159,23 @@ def main():
     device = get_device()
 
     print("=" * 60)
-    print("Comparación de Data Augmentation — YOLOv10n")
+    print("Comparación de Data Augmentation")
     print("=" * 60)
+    print(f"  Modelo:   {args.model}")
     print(f"  Dataset:  {args.data}")
     print(f"  Épocas:   {args.epochs}")
     print(f"  Device:   {device}")
-    print(f"  Configs:  {list(CONFIGS.keys())}")
+    print(f"  Configs:  {list(AUGMENTATION_CONFIGS.keys())}")
     print("=" * 60)
 
     all_metrics = []
 
-    for name, config in CONFIGS.items():
+    for name, config in AUGMENTATION_CONFIGS.items():
         metrics = train_config(
             config_name=name,
             config=config,
             data_yaml=args.data,
+            model_name=args.model,
             epochs=args.epochs,
             batch=args.batch,
             imgsz=args.imgsz,
