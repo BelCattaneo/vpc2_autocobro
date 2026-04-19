@@ -141,9 +141,9 @@ def evaluate_model(
     if paper_figures:
         paper_figures.mkdir(parents=True, exist_ok=True)
         figure_map = {
-            "confusion_matrix_normalized.png": "confusion_matrix.png",
-            "BoxPR_curve.png": "pr_curve.png",
-            "BoxF1_curve.png": "f1_curve.png",
+            "confusion_matrix_normalized.png": "test_confusion_matrix.png",
+            "BoxPR_curve.png": "test_PR_curve.png",
+            "BoxF1_curve.png": "test_F1_curve.png",
         }
         copied = []
         for src_name, dst_name in figure_map.items():
