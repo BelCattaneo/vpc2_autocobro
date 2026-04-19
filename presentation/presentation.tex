@@ -148,7 +148,7 @@
         \begin{itemize}
           \item \textbf{Single-stage:} detección + clasificación en un paso
           \item \textbf{Tiempo real:} $>$15 FPS
-          \item \textbf{Variante nano:} 2.3M parámetros\\
+          \item \textbf{Variante nano:} 2.5M parámetros\\
                 $\Rightarrow$ viable en Raspberry Pi 5
         \end{itemize}
       \end{block}
@@ -172,7 +172,7 @@
   \vspace{0.3cm}
   \begin{block}{Data Augmentation (crítico)}
     Mosaic ($p$=1.0) + flip horizontal ($p$=0.5) + jitter HSV.
-    Sin augmentation: mAP@0.5 cae de 0.833 a \alert{0.512} en test.
+    Sin augmentation: mAP@0.5 cae de 0.790 a \alert{0.693} en test.
   \end{block}
 \end{frame}
 
@@ -266,17 +266,17 @@
 % ============================================================
 % SLIDE 9: Resultados — Test
 % ============================================================
-\begin{frame}{Resultados: Test Split (YOLO11n)}
+\begin{frame}{Resultados: Test Split Multi-Producto (YOLO11n)}
   \begin{columns}[T]
     \begin{column}{0.35\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{test_confusion_matrix.png}\\
+      \includegraphics[width=\linewidth]{multi_confusion_matrix.png}\\
       {\scriptsize Matriz de confusión --- test}
     \end{column}
     \begin{column}{0.35\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{test_PR_curve.png}\\
-      {\scriptsize Curvas PR --- mAP@0.5 = \textbf{0.833}}
+      \includegraphics[width=\linewidth]{multi_PR_curve.png}\\
+      {\scriptsize Curvas PR --- mAP@0.5 = \textbf{0.791}}
     \end{column}
     \begin{column}{0.28\textwidth}
       \small
@@ -284,18 +284,18 @@
         \toprule
         \textbf{Métrica} & \textbf{Valor} \\
         \midrule
-        mAP@0.5     & 0.833 \\
-        mAP@0.5:0.95 & 0.755 \\
-        Precision    & 0.620 \\
-        Recall       & 0.688 \\
+        mAP@0.5     & 0.791 \\
+        mAP@0.5:0.95 & 0.688 \\
+        Precision    & 0.822 \\
+        Recall       & 0.711 \\
         \bottomrule
       \end{tabular}
     \end{column}
   \end{columns}
   \vspace{0.2cm}
   \small
-  \textcolor{accentGreen}{\textbf{Perfectas:}} \textit{aceite\_4l, fideos, miel, tomate} (mAP = 0.995) \quad
-  \textcolor{accentOrange}{\textbf{Débiles:}} \textit{polenta, yerba\_kalena} (mAP = 0.495)
+  \textcolor{accentGreen}{\textbf{Perfectas:}} \textit{aceite\_4l, dulce\_de\_leche, miel} (mAP = 0.995) \quad
+  \textcolor{accentOrange}{\textbf{Débiles:}} \textit{leche\_entera, yerba\_kalena}
 \end{frame}
 
 % ============================================================
@@ -343,9 +343,9 @@
 \begin{frame}{Conclusiones}
   \begin{enumerate}
     \item Sistema de autocobro funcional basado \textbf{exclusivamente en CV}, costo \textbf{140--190 USD}
-    \item YOLO11n alcanza \textbf{mAP@0.5 = 0.967} en validación, \textbf{0.833} en test
+    \item YOLO11n alcanza \textbf{mAP@0.5 = 0.939} en validación, \textbf{0.791} en test (multi-producto)
     \item Inferencia en tiempo real: $>$15 FPS en laptop, $\sim$10 FPS en Raspberry Pi 5
-    \item Data augmentation \textbf{crítico}: sin él, mAP cae de 0.833 a 0.512
+    \item Data augmentation \textbf{crítico}: sin él, mAP cae de 0.790 a 0.693
     \item Lógica multi-frame elimina falsos positivos sin tracker complejo
   \end{enumerate}
   \vspace{0.3cm}
