@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 Demo del sistema de autocobro con visualización y tracking estable.
@@ -356,6 +357,9 @@ def run_demo(
 
     # Inicializar tracker
     tracker = ProductTracker(confirm_frames=confirm_frames, pending_patience=pending_patience)
+
+    # Warm-up: primera inferencia es lenta por compilación del modelo
+    model.predict(np.zeros((640, 640, 3), dtype=np.uint8), verbose=False)
 
     print()
     print("Procesando... (presiona 'q' para terminar)")
