@@ -8,11 +8,11 @@
 \definecolor{fiubaBlue}{RGB}{0, 75, 135}
 \definecolor{fiubaLight}{RGB}{230, 240, 250}
 \definecolor{accentGreen}{RGB}{46, 139, 87}
-\definecolor{accentOrange}{RGB}{230, 126, 34}
+\definecolor{accentGray}{RGB}{120, 120, 130}
 
 \setbeamercolor{palette primary}{bg=fiubaBlue}
-\setbeamercolor{progress bar}{fg=accentOrange, bg=fiubaBlue!20}
-\setbeamercolor{alerted text}{fg=accentOrange}
+\setbeamercolor{progress bar}{fg=accentGray, bg=fiubaBlue!20}
+\setbeamercolor{alerted text}{fg=accentGray}
 
 \usepackage{fontspec}
 \usepackage[spanish]{babel}
@@ -83,7 +83,26 @@
     \end{column}
     \begin{column}{0.5\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{arquitectura.png}
+      \begin{tikzpicture}[
+        node distance=0.6cm,
+        every node/.style={font=\scriptsize},
+        block/.style={rectangle, draw=fiubaBlue, fill=fiubaLight, rounded corners, minimum height=0.8cm, minimum width=1.8cm, align=center, thick},
+        output/.style={rectangle, draw=fiubaBlue!60, fill=fiubaLight!50, rounded corners, minimum height=0.7cm, minimum width=1.5cm, align=center},
+        arrow/.style={-{Stealth[length=2mm]}, thick, fiubaBlue}
+      ]
+        \node[block] (cam) {Cámara\\USB};
+        \node[block, below=of cam] (frame) {Frame\\OpenCV};
+        \node[block, below=of frame] (yolo) {YOLO11n\\Detección +\\Clasificación};
+        \node[block, below=of yolo] (tracker) {Product\\Tracker (IoU)};
+        \node[output, below left=0.6cm and -0.3cm of tracker] (video) {Video\\anotado};
+        \node[output, below right=0.6cm and -0.3cm of tracker] (json) {JSON};
+
+        \draw[arrow] (cam) -- (frame);
+        \draw[arrow] (frame) -- (yolo);
+        \draw[arrow] (yolo) -- (tracker);
+        \draw[arrow] (tracker) -- (video);
+        \draw[arrow] (tracker) -- (json);
+      \end{tikzpicture}
     \end{column}
   \end{columns}
 \end{frame}
@@ -94,12 +113,12 @@
 \begin{frame}{Dataset Propio}
   \begin{columns}[T]
     \begin{column}{0.5\textwidth}
-      \begin{block}{10 clases de productos}
+      \begin{block}{POC: 10 de $\sim$60 clases}
         \small
         \begin{multicols}{2}
           \begin{enumerate}
-            \item aceite 1L
-            \item aceite 4L
+            \item aceite 1~l
+            \item aceite 4~l
             \item dulce de leche
             \item fideos
             \item leche descremada
@@ -113,7 +132,7 @@
       \end{block}
       \vspace{0.2cm}
       Incluye pares \textbf{visualmente similares}:\\
-      leche descremada/entera, aceite 1L/4L
+      leche descremada/entera, aceite 1~l/4~l
     \end{column}
     \begin{column}{0.45\textwidth}
       \begin{block}{Composición}
@@ -201,50 +220,9 @@
 \end{frame}
 
 % ============================================================
-% SLIDE 7: Pipeline de Inferencia
+% SLIDE 7: Resultados — Validación
 % ============================================================
-\begin{frame}{Pipeline de Inferencia}
-  \begin{block}{Lógica de registro multi-frame}
-    \centering
-    \begin{tikzpicture}[
-      node distance=1cm and 1.2cm,
-      every node/.style={font=\small},
-      block/.style={rectangle, draw=fiubaBlue, fill=fiubaLight, rounded corners, minimum height=0.9cm, minimum width=2cm, align=center, thick},
-      arrow/.style={-{Stealth[length=3mm]}, thick, fiubaBlue}
-    ]
-      \node[block] (det) {Detección\\YOLO11n};
-      \node[block, right=of det] (iou) {Matching\\IoU $\geq$ 0.3};
-      \node[block, right=of iou] (conf) {Confirmación\\$\geq$5 frames\\conf $\geq$ 0.5};
-      \node[block, right=of conf] (reg) {Registro\\estable};
-
-      \draw[arrow] (det) -- (iou);
-      \draw[arrow] (iou) -- (conf);
-      \draw[arrow] (conf) -- (reg);
-    \end{tikzpicture}
-  \end{block}
-  \vspace{0.3cm}
-  \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-      \begin{itemize}
-        \item \textcolor{accentGreen}{\textbf{Verde:}} producto confirmado
-        \item \textcolor{yellow!80!black}{\textbf{Amarillo:}} pendiente de confirmación
-        \item \textcolor{accentOrange}{\textbf{Naranja:}} advertencia (baja confianza)
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-      \begin{itemize}
-        \item Tolerancia de oclusión: 10 frames ($\sim$333 ms)
-        \item Sin tracker complejo (productos estáticos)
-        \item Salida: video anotado + JSON
-      \end{itemize}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-% ============================================================
-% SLIDE 8: Resultados — Validación
-% ============================================================
-\begin{frame}{Resultados: Validación (YOLO11n)}
+\begin{frame}{Resultados: Validación Multi-Producto (YOLO11n)}
   \begin{columns}[T]
     \begin{column}{0.48\textwidth}
       \centering
@@ -254,13 +232,13 @@
     \begin{column}{0.48\textwidth}
       \centering
       \includegraphics[width=\linewidth]{BoxPR_curve_val.png}\\
-      \small Curvas Precision-Recall --- mAP@0.5 = \textbf{0.967}
+      \small Curvas Precision-Recall --- mAP@0.5 = \textbf{0.963}
     \end{column}
   \end{columns}
   \vspace{0.3cm}
   \centering
-  Clases como \textit{aceite\_1l}, \textit{polenta} y \textit{tomate}: precisión perfecta.\\
-  Clase problemática: \textit{fideos} (mAP@0.5 = 0.828).
+  9 de 10 clases con mAP@0.5 $>$ 0.95, incluyendo pares similares (leche, aceite).\\
+  Clase problemática: \textit{miel} (mAP@0.5 = 0.746).
 \end{frame}
 
 % ============================================================
@@ -276,7 +254,7 @@
     \begin{column}{0.35\textwidth}
       \centering
       \includegraphics[width=\linewidth]{test_PR_curve.png}\\
-      {\scriptsize Curvas PR --- mAP@0.5 = \textbf{0.791}}
+      {\scriptsize Curvas PR --- mAP@0.5 = \textbf{0.849}}
     \end{column}
     \begin{column}{0.28\textwidth}
       \small
@@ -284,18 +262,18 @@
         \toprule
         \textbf{Métrica} & \textbf{Valor} \\
         \midrule
-        mAP@0.5     & 0.791 \\
-        mAP@0.5:0.95 & 0.688 \\
-        Precision    & 0.822 \\
-        Recall       & 0.711 \\
+        mAP@0.5     & 0.849 \\
+        mAP@0.5:0.95 & 0.733 \\
+        Precision    & 0.948 \\
+        Recall       & 0.709 \\
         \bottomrule
       \end{tabular}
     \end{column}
   \end{columns}
   \vspace{0.2cm}
   \small
-  \textcolor{accentGreen}{\textbf{Perfectas:}} \textit{aceite\_4l, dulce\_de\_leche, miel} (mAP = 0.995) \quad
-  \textcolor{accentOrange}{\textbf{Débiles:}} \textit{leche\_entera, yerba\_kalena}
+  \textcolor{accentGreen}{\textbf{Perfectas:}} \textit{aceite\_4l, dulce\_de\_leche, miel, tomate} (mAP = 0.995) \quad
+  \textcolor{accentGray}{\textbf{Débiles:}} \textit{yerba\_kalena} (0.625), \textit{leche\_entera} (0.666)
 \end{frame}
 
 % ============================================================
@@ -311,39 +289,59 @@
 % ============================================================
 % SLIDE 11: Demo Video
 % ============================================================
-\begin{frame}{Demo en Vivo}
+\begin{frame}{Demo}
   \centering
-  \vspace{1cm}
-  {\Large \textbf{Video demo}}\\
-  \vspace{0.5cm}
-  {\large Duración: máx. 2 minutos}\\
-  \vspace{1cm}
+  \includegraphics[width=0.85\linewidth, height=0.8\textheight, keepaspectratio]{../presentation/images/demo.png}
+\end{frame}
+
+% ============================================================
+% Pipeline de Inferencia (después de demo para contextualizar)
+% ============================================================
+\begin{frame}{Pipeline de Inferencia}
+  \begin{block}{Lógica de registro multi-frame}
+    \centering
+    \begin{tikzpicture}[
+      node distance=1cm and 1.2cm,
+      every node/.style={font=\small},
+      block/.style={rectangle, draw=fiubaBlue, fill=fiubaLight, rounded corners, minimum height=0.9cm, minimum width=2cm, align=center, thick},
+      arrow/.style={-{Stealth[length=3mm]}, thick, fiubaBlue}
+    ]
+      \node[block] (det) {Detección\\YOLO11n};
+      \node[block, right=of det] (iou) {Matching\\IoU $\geq$ 0.3};
+      \node[block, right=of iou] (conf) {Confirmación\\$\geq$5 frames\\(tolerancia: 3)\\conf $\geq$ 0.5};
+      \node[block, right=of conf] (reg) {Registro\\estable};
+
+      \draw[arrow] (det) -- (iou);
+      \draw[arrow] (iou) -- (conf);
+      \draw[arrow] (conf) -- (reg);
+    \end{tikzpicture}
+  \end{block}
+  \vspace{0.3cm}
   \begin{columns}[T]
-    \begin{column}{0.45\textwidth}
-      \begin{enumerate}
-        \item Mesa vacía, sistema corriendo
-        \item Agregar productos de a uno
-        \item Lista acumulándose en panel lateral
-      \end{enumerate}
+    \begin{column}{0.48\textwidth}
+      \begin{itemize}
+        \item \textcolor{accentGreen}{\textbf{Verde:}} producto confirmado
+        \item \textcolor{yellow!80!black}{\textbf{Amarillo:}} pendiente de confirmación
+        \item \textcolor{accentGray}{\textbf{Gris:}} advertencia (baja confianza)
+      \end{itemize}
     \end{column}
-    \begin{column}{0.45\textwidth}
-      \begin{enumerate}
-        \setcounter{enumi}{3}
-        \item Productos difíciles (similares)
-        \item Estado final de la mesa
-        \item JSON de salida generado
-      \end{enumerate}
+    \begin{column}{0.48\textwidth}
+      \begin{itemize}
+        \item Tolerancia de oclusión: 10 frames ($\sim$333 ms)
+        \item Confirmados suprimen duplicados y warnings en su región
+        \item Salida: video anotado + JSON
+      \end{itemize}
     \end{column}
   \end{columns}
 \end{frame}
 
 % ============================================================
-% SLIDE 12: Conclusiones y Trabajo Futuro
+% Conclusiones y Trabajo Futuro
 % ============================================================
 \begin{frame}{Conclusiones}
   \begin{enumerate}
     \item Sistema de autocobro funcional basado \textbf{exclusivamente en CV}, costo \textbf{140--190 USD}
-    \item YOLO11n alcanza \textbf{mAP@0.5 = 0.939} en validación, \textbf{0.791} en test (multi-producto)
+    \item YOLO11n alcanza \textbf{mAP@0.5 = 0.963} en validación, \textbf{0.849} en test (multi-producto)
     \item Inferencia en tiempo real: $>$15 FPS en laptop, $\sim$10 FPS en Raspberry Pi 5
     \item Data augmentation \textbf{crítico}: sin él, mAP cae de 0.790 a 0.693
     \item Lógica multi-frame elimina falsos positivos sin tracker complejo
