@@ -647,30 +647,9 @@ Los resultados indican que \textbf{YOLO11n} ofrece el mejor balance para el proy
 
 El modelo YOLO11n seleccionado en el benchmark se re-entrenó sobre el dataset multi-producto (132 imágenes de entrenamiento con escenas de 1--10 productos y oclusiones parciales) y se evaluó sobre los splits de validación (19 imágenes) y test (18 imágenes).
 
-\subsubsection{Impacto del Data Augmentation}
-
-Para cuantificar el impacto del data augmentation, se compararon tres estrategias entrenando YOLO11n con idéntica configuración (100 épocas, seed fija). Los resultados (\cref{tab:augmentation}) confirman que el data augmentation es crítico: sin augmentation, el mAP@0.5 en test cae de 0.790 a 0.693. La configuración por defecto de Ultralytics (mosaic, flip horizontal, jitter HSV) ofrece el mejor balance, superando tanto la ausencia de augmentation como la configuración agresiva (mixup, rotación de 15°, jitter HSV intenso).
-
-\begin{table}[htbp]
-\centering
-\caption{Impacto del data augmentation --- YOLO11n, dataset multi-producto.}
-\label{tab:augmentation}
-\small
-\begin{tabular}{lcccc}
-\hline
-\textbf{Config.} & \textbf{Val mAP} & \textbf{Test mAP} & \textbf{Test P} & \textbf{Test R} \\
-\hline
-Sin aug.    & 0.851 & 0.693 & 0.878 & 0.481 \\
-Default     & \textbf{0.934} & \textbf{0.790} & 0.821 & \textbf{0.711} \\
-Agresivo    & 0.927 & 0.721 & \textbf{0.859} & 0.642 \\
-\hline
-\end{tabular}
-\end{table}
-
-
 \subsubsection{Resultados en Validación y Test}
 
-La \cref{tab:resultados-multiproducto} presenta las métricas globales del modelo final (entrenado con augmentation por defecto) sobre ambos splits.
+La \cref{tab:resultados-multiproducto} presenta las métricas globales del modelo final sobre ambos splits.
 
 \begin{table}[htbp]
 \centering
@@ -708,10 +687,33 @@ En test, \textit{aceite\_4l}, \textit{dulce\_de\_leche}, \textit{miel} y \textit
 
 La diferencia entre validación y test (11.4 puntos de mAP@0.5) refleja la sensibilidad de las métricas al tamaño reducido del dataset, donde una sola detección errónea impacta significativamente las métricas globales.
 
+\subsubsection{Impacto del Data Augmentation}
+
+Los resultados anteriores fueron posibles gracias al data augmentation. Para cuantificar su impacto, se compararon tres estrategias entrenando YOLO11n con idéntica configuración (100 épocas, seed fija). Como muestra la \cref{tab:augmentation}, sin augmentation el mAP@0.5 en test cae de 0.790 a 0.693 y el recall de 0.711 a 0.481. La configuración por defecto de Ultralytics (mosaic, flip horizontal, jitter HSV) ofrece el mejor balance, superando tanto la ausencia de augmentation como la configuración agresiva (mixup, rotación de 15°, jitter HSV intenso).
+
+\begin{table}[htbp]
+\centering
+\caption{Impacto del data augmentation --- YOLO11n, dataset multi-producto.}
+\label{tab:augmentation}
+\small
+\begin{tabular}{lcccc}
+\hline
+\textbf{Config.} & \textbf{Val mAP} & \textbf{Test mAP} & \textbf{Test P} & \textbf{Test R} \\
+\hline
+Sin aug.    & 0.851 & 0.693 & 0.878 & 0.481 \\
+Default     & \textbf{0.934} & \textbf{0.790} & 0.821 & \textbf{0.711} \\
+Agresivo    & 0.927 & 0.721 & \textbf{0.859} & 0.642 \\
+\hline
+\end{tabular}
+\end{table}
 
 \subsection{Rendimiento en Tiempo Real}
 
-El sistema completo (captura de video + inferencia + tracking + visualización) opera a más de 15~FPS en la laptop de desarrollo. YOLO11n registró un tiempo de inferencia de 205.7~ms por imagen en el hardware de evaluación (Intel Core i5-6200U, CPU), siendo la arquitectura más rápida del benchmark. Para el hardware objetivo (Raspberry Pi~5, 8~GB), se estima un rendimiento de $\sim$10~FPS según los benchmarks del fabricante, valor operacionalmente viable dado que la velocidad de colocación de productos es significativamente menor. Se validó el sistema completo con escenarios simulados de checkout, verificando la correcta confirmación multi-frame, la acumulación en el panel lateral y la generación del archivo JSON de salida sin duplicaciones ni falsos positivos persistentes.
+El sistema completo (captura de video + inferencia + tracking + visualización) opera a más de 15~FPS en la laptop de desarrollo. YOLO11n registró un tiempo de inferencia de 205.7~ms por imagen en el hardware de evaluación (Intel Core i5-6200U, CPU), siendo la arquitectura más rápida del benchmark. Para el hardware objetivo (Raspberry Pi~5, 8~GB), se estima un rendimiento de $\sim$10~FPS según los benchmarks del fabricante, valor operacionalmente viable dado que la velocidad de colocación de productos es significativamente menor.
+
+\subsection{Validación End-to-End}
+
+Se validó el sistema completo con escenarios simulados de checkout: partiendo de una mesa vacía, se agregaron productos de a uno, verificando la correcta confirmación multi-frame, la acumulación en el panel lateral y la generación del archivo JSON de salida. El sistema registró correctamente todos los productos colocados, sin duplicaciones ni falsos positivos persistentes.
 
 %% ===========================================================================
 \section{Discusión}
