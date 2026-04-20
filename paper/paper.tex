@@ -676,7 +676,7 @@ En validación, 9 de 10 clases superan un mAP@0.5 de 0.95, incluyendo pares visu
   \label{fig:confusion-matrix-val}
 \end{figure}
 
-En test, \textit{aceite\_4l}, \textit{dulce\_de\_leche}, \textit{miel} y \textit{tomate} mantienen detección perfecta (mAP@0.5 $= 0.995$). Las clases con menor rendimiento son \textit{yerba\_kalena} (0.625) y \textit{leche\_entera} (0.666), atribuible a la escasa representación en el test split y a la alta similaridad visual entre variantes de leche. La inversión de rendimiento de \textit{miel} entre validación (0.746) y test (0.995) evidencia la alta varianza inherente a splits reducidos, donde pocas instancias determinan la métrica. La \cref{fig:test-pr-curve} presenta las curvas Precision-Recall sobre el test split.
+En test, \textit{aceite\_4l}, \textit{dulce\_de\_leche} y \textit{miel} alcanzan mAP@0.5 de 0.995. Sin embargo, \textit{tomate}, a pesar de reportar un mAP@0.5 alto, presenta recall 0 en la matriz de confusión: con una sola instancia en el test split, el modelo no logra detectarla a umbrales operacionales. La confusión inter-clase más notable es \textit{aceite\_1l}, donde el 25\% de las instancias se confunden con \textit{dulce\_de\_leche}, probablemente por la forma similar del envase. También se observa que el 20\% de las instancias de \textit{leche\_descremada} se confunden con \textit{leche\_entera}, confirmando que los pares visualmente similares representan el mayor desafío para el modelo. Las clases con menor rendimiento global son \textit{yerba\_kalena} (0.625) y \textit{leche\_entera} (0.666), atribuible a la escasa representación en el test split. La inversión de rendimiento de \textit{miel} entre validación (0.746) y test (0.995) evidencia la alta varianza inherente a splits reducidos, donde pocas instancias determinan la métrica. La \cref{fig:test-pr-curve} presenta las curvas Precision-Recall sobre el test split.
 
 \begin{figure}[htbp]
   \centering
@@ -721,7 +721,11 @@ Se validó el sistema completo con escenarios simulados de checkout: partiendo d
 
 \subsection{Interpretación de Resultados}
 
-YOLO11n alcanzó un mAP@0.5 de 0.967 en el benchmark sobre producto individual y 0.963 en validación sobre el dataset multi-producto, superando ampliamente el umbral mínimo de 0.70. En el test split multi-producto, el modelo obtuvo un mAP@0.5 de 0.849, confirmando la capacidad de generalización. La diferencia entre validación y test (11.4 puntos) sugiere cierto overfitting atribuible al tamaño reducido del dataset. Si bien la comparación directa con el dataset RPC~\cite{wei2019rpc} (que reporta mAP entre 0.50 y 0.80 sobre 200 categorías) no es directa por la diferencia de escala, los resultados confirman la viabilidad del enfoque para un catálogo acotado.
+YOLO11n alcanzó un mAP@0.5 de 0.967 en el benchmark sobre producto individual y 0.963 en validación sobre el dataset multi-producto, superando ampliamente el umbral mínimo de 0.70. En el test split multi-producto, el modelo obtuvo un mAP@0.5 de 0.849, confirmando la capacidad de generalización. La diferencia entre validación y test (11.4 puntos) sugiere cierto overfitting atribuible al tamaño reducido del dataset.
+
+El análisis de la matriz de confusión revela patrones de error relevantes para el escalado futuro del sistema. La confusión entre \textit{aceite\_1l} y \textit{dulce\_de\_leche} (25\%) sugiere que productos con envases de forma similar representan un desafío mayor que la variación de tamaño dentro de una misma categoría (aceite 1~l vs 4~l, que el modelo distingue perfectamente). La confusión entre \textit{leche\_descremada} y \textit{leche\_entera} (20\%) confirma que pares con packaging casi idéntico requieren mayor cantidad de datos de entrenamiento para una discriminación robusta. Estas confusiones deberán monitorearse especialmente al escalar a las $\sim$60 clases del catálogo completo.
+
+Si bien la comparación directa con el dataset RPC~\cite{wei2019rpc} (que reporta mAP entre 0.50 y 0.80 sobre 200 categorías) no es directa por la diferencia de escala, los resultados confirman la viabilidad del enfoque para un catálogo acotado.
 
 \subsection{Limitaciones}
 
