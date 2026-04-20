@@ -480,7 +480,7 @@
 \fi
 
 \begin{abstract}
-Este trabajo presenta un sistema de detección y clasificación de productos en tiempo real orientado al autocobro en despensas comunitarias. El sistema utiliza YOLO11, seleccionado mediante un benchmark comparativo entre tres arquitecturas nano de la familia YOLO. Se construyó un dataset propio con 10 clases de productos típicos de despensa, capturados bajo condiciones controladas con vista cenital. El pipeline incorpora una lógica de registro estable basada en seguimiento multi-frame mediante Intersection over Union (IoU), que requiere 5 detecciones consecutivas antes de confirmar un producto, reduciendo falsos positivos por variación de confianza entre cuadros. El modelo seleccionado (YOLO11n) obtuvo un mAP@0.5 de 0.967 en validación sobre producto individual y un mAP@0.5 de 0.939 en validación sobre escenas multi-producto, con inferencia en tiempo real superior a 15 FPS (Frames Per Second). La metodología propuesta es reproducible y extensible a catálogos de mayor escala. El código y el dataset se encuentran disponibles públicamente.\footnote{\url{https://github.com/BelCattaneo/vpc2_autocobro}}
+Este trabajo presenta un sistema de detección y clasificación de productos en tiempo real orientado al autocobro en despensas comunitarias. El sistema utiliza YOLO11, seleccionado mediante un benchmark comparativo entre tres arquitecturas nano de la familia YOLO. Se construyó un dataset propio con 10 clases de productos típicos de despensa, capturados bajo condiciones controladas con vista cenital. El pipeline incorpora una lógica de registro estable basada en seguimiento multi-frame mediante Intersection over Union (IoU), que requiere 5 detecciones consecutivas antes de confirmar un producto, reduciendo falsos positivos por variación de confianza entre cuadros. El modelo seleccionado (YOLO11n) obtuvo un mAP@0.5 de 0.963 en validación y 0.849 en test sobre escenas multi-producto, con inferencia en tiempo real superior a 15 FPS (Frames Per Second). La metodología propuesta es reproducible y extensible a catálogos de mayor escala. El código y el dataset se encuentran disponibles públicamente.\footnote{\url{https://github.com/BelCattaneo/vpc2_autocobro}}
 \end{abstract}
 
 % For peer review papers, you can put extra information on the cover
@@ -507,6 +507,8 @@ Este trabajo propone un sistema de autocobro de bajo costo para despensas comuni
   \item Un análisis de rendimiento sobre clases visualmente similares (variantes de leche y aceite), que valida la capacidad de discriminación fina del modelo en condiciones de prueba de concepto.
   \item Una metodología extensible y documentada, que permite escalar el catálogo sin cambios en la arquitectura del sistema.
 \end{enumerate}
+
+El presente trabajo corresponde a la primera fase del proyecto: una prueba de concepto con 10 clases que valida la viabilidad del enfoque antes de escalar al catálogo completo de la despensa ($\sim$60 productos).
 
 El resto del trabajo está organizado de la siguiente manera: la \cref{sec:trabajos-relacionados} presenta los trabajos relacionados. La \cref{sec:metodologia} describe la metodología propuesta, incluyendo el dataset, modelo y pipeline de inferencia. La \cref{sec:experimentos} presenta los experimentos realizados y sus resultados. La \cref{sec:discusion} discute la interpretación de los resultados, limitaciones y trabajo futuro. Finalmente, la \cref{sec:conclusiones} presenta las conclusiones.
 
@@ -555,7 +557,7 @@ El hardware de despliegue consiste en una Raspberry Pi~5 (8~GB) como dispositivo
 
 \subsubsection{Selección de Productos}
 
-Se seleccionaron 10 clases de productos representativos del catálogo de la despensa comunitaria: aceite 1L, aceite 4L, dulce de leche, fideos, leche descremada, leche entera, miel, polenta, tomate y yerba. La selección incluye intencionalmente pares de productos visualmente similares (leche descremada/entera, aceite 1L/4L) para evaluar la capacidad de discriminación fina del modelo.
+Para esta primera fase se seleccionaron 10 clases de productos representativos del catálogo de la despensa comunitaria ($\sim$60 productos), priorizando la validación del pipeline completo con un subconjunto representativo antes de escalar al catálogo completo. Las clases seleccionadas son: aceite 1~l, aceite 4~l, dulce de leche, fideos, leche descremada, leche entera, miel, polenta, tomate y yerba. La selección incluye intencionalmente pares de productos visualmente similares (leche descremada/entera, aceite 1~l/4~l) para evaluar la capacidad de discriminación fina del modelo.
 
 \subsubsection{Setup de Captura}
 
@@ -563,7 +565,7 @@ Las imágenes se capturaron con una webcam USB de 1080p montada en posición cen
 
 \subsubsection{Protocolo de Captura}
 
-Se definieron múltiples tipos de escenas para capturar la variabilidad del caso de uso real: productos individuales (30--50 imágenes por clase), acumulaciones de 2--5 productos (20 escenas), acumulaciones de 5--10 productos (20 escenas), escenas con mano visible durante la colocación (10 escenas), y hard negatives con objetos que no pertenecen al catálogo (10 escenas). Adicionalmente, se grabaron videos de sesiones completas de checkout y se extrajeron frames con variación posicional para ampliar la diversidad del dataset.
+Se definieron múltiples tipos de escenas para capturar la variabilidad del caso de uso real: productos individuales (30--50 imágenes por clase), acumulaciones de 2--5 productos (20 escenas), acumulaciones de 5--10 productos (20 escenas), y escenas con mano visible durante la colocación (10 escenas). Adicionalmente, se grabaron videos de sesiones completas de checkout y se extrajeron frames con variación posicional para ampliar la diversidad del dataset.
 
 \subsubsection{Anotación}
 
@@ -590,22 +592,21 @@ Se seleccionó la variante nano (YOLO11n, 2.5M parámetros) para cumplir con el 
 
 \subsubsection{Configuración de Entrenamiento}
 
-El modelo se entrenó mediante transfer learning~\cite{yosinski2014transferable} a partir de pesos pre-entrenados en COCO (Common Objects in Context), utilizando el framework Ultralytics~\cite{jocher2023ultralytics}. La configuración de entrenamiento fue: 100 épocas, batch size de 16, tamaño de imagen de $640 \times 640$ píxeles, y early stopping con paciencia de 20 épocas. Se utilizó el optimizador SGD (Stochastic Gradient Descent) con los hiperparámetros por defecto del framework (learning rate $= 0.01$, momentum $= 0.937$, weight decay $= 0.0005$). El entrenamiento se realizó en una laptop con Apple Silicon (backend MPS) con \texttt{amp=False} para evitar incompatibilidades con la precisión mixta en dicha plataforma.
-
+El modelo se entrenó mediante transfer learning~\cite{yosinski2014transferable} a partir de pesos pre-entrenados en COCO (Common Objects in Context), utilizando el framework Ultralytics~\cite{jocher2023ultralytics}. La configuración de entrenamiento fue: 100 épocas, batch size de 16, tamaño de imagen de $640 \times 640$ píxeles, y early stopping con paciencia de 20 épocas. Se utilizó el optimizador SGD (Stochastic Gradient Descent) con los hiperparámetros por defecto del framework (learning rate $= 0.01$, momentum $= 0.937$, weight decay $= 0.0005$).
 \subsection{Pipeline de Inferencia}
 \label{subsec:pipeline}
 
 \subsubsection{Lógica de Registro Estable}
 
-Para filtrar la variabilidad de confianza entre cuadros consecutivos, se implementó un algoritmo de registro multi-frame. Cada detección se asocia a un registro existente mediante IoU (Intersection over Union) con un umbral de $0.3$ y coincidencia de clase. Las detecciones no asociadas inician un nuevo registro en estado ``pendiente''. Un producto se confirma como presente en la mesa cuando ha sido detectado en al menos $N = 5$ frames consecutivos con confianza $\geq 0.5$. Los productos confirmados se mantienen registrados hasta que no se detectan durante $M = 10$ frames consecutivos, evitando des-registraciones prematuras por oclusiones momentáneas.
+Para filtrar la variabilidad de confianza entre cuadros consecutivos, se implementó un algoritmo de registro multi-frame. Cada detección se asocia a un registro existente mediante IoU con un umbral de $0.3$ y coincidencia de clase. Las detecciones no asociadas inician un nuevo registro en estado ``pendiente''. Un producto se confirma como presente en la mesa cuando ha sido detectado en al menos $N = 5$ frames con confianza $\geq 0.5$, tolerando hasta 3 frames sin detección antes de reiniciar el conteo. Los productos confirmados se mantienen registrados hasta que no se detectan durante $M = 10$ frames consecutivos, evitando des-registraciones prematuras por oclusiones momentáneas.
 
-Adicionalmente, las detecciones con confianza entre $0.15$ y $0.5$ se muestran como ``advertencias'' en la interfaz (bounding boxes naranjas), alertando al usuario sobre productos potencialmente no reconocidos sin generar falsos positivos en el registro.
+Las detecciones que coinciden espacialmente con un producto ya confirmado (misma clase, IoU $> 0.3$) actualizan ese registro en lugar de generar entradas duplicadas. Adicionalmente, las detecciones con confianza entre $0.15$ y $0.5$ se muestran como ``advertencias'' en la interfaz, salvo que se superpongan con un producto ya confirmado, en cuyo caso se suprimen para evitar ruido visual.
 
 A 30~FPS, $N = 5$ frames equivale a $\sim$167~ms de detección consistente, tiempo suficiente para suprimir falsos positivos transitorios sin latencia perceptible para el usuario. El umbral de desaparición de $M = 10$ frames ($\sim$333~ms) permite oclusiones breves, como el paso de una mano sobre un producto.
 
 \subsubsection{Tracking}
 
-Se optó por un esquema de seguimiento simple basado en IoU en lugar de trackers más sofisticados como ByteTrack~\cite{zhang2022bytetrack}. La justificación es que el caso de uso involucra productos estacionarios acumulándose sobre una mesa: la predicción de movimiento basada en filtro de Kalman que utiliza ByteTrack agrega complejidad computacional sin beneficio para objetos estáticos. El problema a resolver no es la predicción de trayectorias, sino la confirmación estable de presencia a lo largo del tiempo.
+Se optó por un esquema de seguimiento simple basado en IoU en lugar de trackers más sofisticados como ByteTrack~\cite{zhang2022bytetrack}. La justificación es que el caso de uso involucra productos estacionarios acumulándose sobre una mesa: la predicción de movimiento basada en filtro de Kalman~\cite{bewley2016sort} que utiliza ByteTrack agrega complejidad computacional sin beneficio para objetos estáticos. El problema a resolver no es la predicción de trayectorias, sino la confirmación estable de presencia a lo largo del tiempo.
 
 \subsubsection{Visualización}
 
@@ -617,7 +618,7 @@ La interfaz de inferencia incluye un panel lateral de 250 píxeles que muestra l
 
 \subsection{Configuración Experimental}
 
-El entrenamiento y la evaluación se realizaron utilizando un procesador Intel Core i5-6200U sin aceleración gráfica dedicada (GPU), lo que permitió simular restricciones de hardware cercanas a las del entorno de producción. Las métricas de evaluación~\cite{everingham2010pascal} reportadas son: mean Average Precision a IoU $= 0.5$ (mAP@0.5) y a IoU $\in [0.5, 0.95]$ (mAP@0.5:0.95), precision media y recall medio sobre todas las clases.
+El entrenamiento se realizó en una laptop con Apple Silicon (backend MPS), mientras que los tiempos de inferencia del benchmark se midieron en un procesador Intel Core i5-6200U sin aceleración gráfica dedicada (GPU), simulando restricciones cercanas al hardware de producción. Las métricas de evaluación~\cite{everingham2010pascal} reportadas son: mean Average Precision a IoU $= 0.5$ (mAP@0.5) y a IoU $\in [0.5, 0.95]$ (mAP@0.5:0.95), precision media y recall medio sobre todas las clases.
 
 \subsection{Benchmark de Arquitecturas (Prueba de Concepto - 10 clases)}
 
@@ -627,120 +628,90 @@ Para determinar el modelo óptimo a desplegar en la Raspberry Pi 5, se realizó 
 \centering
 \caption{Comparativa de rendimiento en validación --- Dataset 10 clases.}
 \label{tab:resultados-benchmark}
+\small
 \begin{tabular}{lcccc}
 \hline
-\textbf{Modelo} & \textbf{Parámetros} & \textbf{Inferencia} & \textbf{mAP@0.5} & \textbf{mAP@0.5:0.95} \\
+\textbf{Modelo} & \textbf{Params} & \textbf{Infer.} & \textbf{mAP@.5} & \textbf{mAP@.5:.95} \\
 \hline
-YOLOv8n & 3.0 M & 246.2 ms & \textbf{0.967} & 0.835 \\
-YOLOv10n & \textbf{2.2 M} & 213.0 ms & 0.813 & 0.774 \\
-YOLO11n & 2.5 M & \textbf{205.7 ms} & \textbf{0.967} & \textbf{0.889} \\
+YOLOv8n  & 3.0M & 246 ms & \textbf{0.967} & 0.835 \\
+YOLOv10n & \textbf{2.2M} & 213 ms & 0.813 & 0.774 \\
+YOLO11n  & 2.5M & \textbf{206 ms} & \textbf{0.967} & \textbf{0.889} \\
 \hline
 \end{tabular}
 \end{table}
 
 Los resultados indican que \textbf{YOLO11n} ofrece el mejor balance para el proyecto. Si bien empata con YOLOv8n en mAP@0.5, lo supera significativamente en la métrica más estricta (mAP@0.5:0.95), logrando además la mayor velocidad de inferencia por imagen. En consecuencia, YOLO11n es seleccionado como la arquitectura base para las siguientes etapas.
 
-\subsection{Evaluación sobre Validation Split (YOLO11n)}
+\subsection{Evaluación Multi-Producto}
+\label{subsec:eval-multiproducto}
 
-Se analizó en detalle el rendimiento del modelo seleccionado (YOLO11n) sobre el split de validación. La \cref{fig:confusion-matrix-val} muestra la matriz de confusión, donde se evidencia que las clases \textit{aceite\_1l}, \textit{polenta} y \textit{tomate} son detectadas con una precisión perfecta. 
+El modelo YOLO11n seleccionado en el benchmark se re-entrenó sobre el dataset multi-producto (132 imágenes de entrenamiento con escenas de 1--10 productos y oclusiones parciales) y se evaluó sobre los splits de validación (19 imágenes) y test (18 imágenes).
+
+\subsubsection{Impacto del Data Augmentation}
+
+Para cuantificar el impacto del data augmentation, se compararon tres estrategias entrenando YOLO11n con idéntica configuración (100 épocas, seed fija). Los resultados (\cref{tab:augmentation}) confirman que el data augmentation es crítico: sin augmentation, el mAP@0.5 en test cae de 0.790 a 0.693. La configuración por defecto de Ultralytics (mosaic, flip horizontal, jitter HSV) ofrece el mejor balance, superando tanto la ausencia de augmentation como la configuración agresiva (mixup, rotación de 15°, jitter HSV intenso).
+
+\begin{table}[htbp]
+\centering
+\caption{Impacto del data augmentation --- YOLO11n, dataset multi-producto.}
+\label{tab:augmentation}
+\small
+\begin{tabular}{lcccc}
+\hline
+\textbf{Config.} & \textbf{Val mAP} & \textbf{Test mAP} & \textbf{Test P} & \textbf{Test R} \\
+\hline
+Sin aug.    & 0.851 & 0.693 & 0.878 & 0.481 \\
+Default     & \textbf{0.934} & \textbf{0.790} & 0.821 & \textbf{0.711} \\
+Agresivo    & 0.927 & 0.721 & \textbf{0.859} & 0.642 \\
+\hline
+\end{tabular}
+\end{table}
+
+
+\subsubsection{Resultados en Validación y Test}
+
+La \cref{tab:resultados-multiproducto} presenta las métricas globales del modelo final (entrenado con augmentation por defecto) sobre ambos splits.
+
+\begin{table}[htbp]
+\centering
+\caption{Rendimiento de YOLO11n sobre el dataset multi-producto.}
+\label{tab:resultados-multiproducto}
+\begin{tabular}{lcc}
+\hline
+\textbf{Métrica} & \textbf{Validación} & \textbf{Test} \\
+\hline
+mAP@0.5          & 0.963 & 0.849 \\
+mAP@0.5:0.95     & 0.847 & 0.733 \\
+Precision        & 0.903 & 0.948 \\
+Recall           & 0.940 & 0.709 \\
+\hline
+\end{tabular}
+\end{table}
+
+En validación, 9 de 10 clases superan un mAP@0.5 de 0.95, incluyendo pares visualmente similares como leche descremada/entera (0.995/0.962) y aceite 1~l/4~l (0.995/0.995). La única excepción es \textit{miel} (0.746). La \cref{fig:confusion-matrix-val} muestra la matriz de confusión sobre el split de validación.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\linewidth]{figures/confusion_matrix_val.png}
-  \caption{Matriz de confusión para el modelo YOLO11n sobre el split de validación. Las filas representan las predicciones y las columnas el ground truth.}
+  \caption{Matriz de confusión normalizada para YOLO11n sobre el split de validación del dataset multi-producto (19 imágenes).}
   \label{fig:confusion-matrix-val}
 \end{figure}
 
-Por el contrario, la clase \textit{fideos} presenta cierta confusión. Evaluando las métricas por clase, \textit{fideos} obtuvo el mAP@0.5 más bajo con 0.828, marcando un fuerte contraste con el 0.995 obtenido por el resto de las clases detectadas de manera individual. 
-
-La \cref{fig:pr-curve-val} presenta las curvas Precision-Recall, ilustrando la alta separabilidad visual en la mayoría de los productos y logrando el mAP@0.5 global de 0.967. 
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=\linewidth]{figures/BoxPR_curve_val.png}
-  \caption{Curvas Precision-Recall por clase para el modelo YOLO11n. mAP@0.5 global = 0.967.}
-  \label{fig:pr-curve-val}
-\end{figure}
-
-Finalmente, la \cref{fig:val-pred} ilustra predicciones cualitativas del modelo, evidenciando detecciones con altos niveles de confianza en la correcta ubicación espacial de los productos individuales.
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=\linewidth]{figures/val_batch0_pred.jpg}
-  \caption{Ejemplos de predicciones (bounding boxes y nivel de confianza) generadas por YOLO11n.}
-  \label{fig:val-pred}
-\end{figure}
-
-
-\subsection{Evaluación Final sobre Test Split (YOLO11n)}
-
-Para validar la capacidad de generalización del modelo ganador (YOLO11n), se lo evaluó sobre un conjunto de test completamente independiente compuesto por 12 imágenes (20 instancias). Los resultados globales alcanzaron un mAP@0.5 de 0.833 y un mAP@0.5:0.95 de 0.755. La \cref{tab:resultados-test} presenta las métricas globales de esta evaluación.
-
-\begin{table}[htbp]
-\centering
-\caption{Resultados de evaluación sobre Test Split --- YOLO11n.}
-\label{tab:resultados-test}
-\begin{tabular}{lc}
-\hline
-\textbf{Métrica} & \textbf{Valor} \\
-\hline
-mAP@0.5          & 0.833 \\
-mAP@0.5:0.95     & 0.755 \\
-Precision        & 0.620 \\
-Recall           & 0.688 \\
-\hline
-\end{tabular}
-\end{table}
-
-El análisis de rendimiento por clases revela la alta sensibilidad de las métricas frente a datasets reducidos. Clases como \textit{aceite\_4l}, \textit{fideos}, \textit{miel} y \textit{tomate} lograron detecciones perfectas con un mAP@0.5 de 0.995. Destaca la inclusión de \textit{leche\_descremada} y \textit{miel}, las cuales no poseían representación en el split de validación, demostrando una sólida extracción de características por parte de la arquitectura.
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=\linewidth]{figures/test_confusion_matrix.png}
-  \caption{Matriz de confusión para el modelo YOLO11n sobre el Test Split.}
-  \label{fig:test-confusion-matrix}
-\end{figure}
-
-Por el contrario, como se observa en la matriz de confusión (\cref{fig:test-confusion-matrix}), \textit{polenta} y \textit{yerba\_kalena} registraron falsos negativos frente al fondo (background), bajando su rendimiento (mAP@0.5 de 0.495). Al contar con muy pocas instancias de estas clases en el conjunto de prueba, cualquier variación visual del envase impacta desproporcionadamente. 
+En test, \textit{aceite\_4l}, \textit{dulce\_de\_leche}, \textit{miel} y \textit{tomate} mantienen detección perfecta (mAP@0.5 $= 0.995$). Las clases con menor rendimiento son \textit{yerba\_kalena} (0.625) y \textit{leche\_entera} (0.666), atribuible a la escasa representación en el test split y a la alta similaridad visual entre variantes de leche. La inversión de rendimiento de \textit{miel} entre validación (0.746) y test (0.995) evidencia la alta varianza inherente a splits reducidos, donde pocas instancias determinan la métrica. La \cref{fig:test-pr-curve} presenta las curvas Precision-Recall sobre el test split.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\linewidth]{figures/test_PR_curve.png}
-  \caption{Curvas Precision-Recall por clase sobre el Test Split. mAP@0.5 global = 0.833.}
+  \caption{Curvas Precision-Recall por clase sobre el test split del dataset multi-producto. mAP@0.5 global = 0.849.}
   \label{fig:test-pr-curve}
 \end{figure}
 
-La \cref{fig:test-pr-curve} ilustra las curvas Precision-Recall de este examen final, consolidando a YOLO11n como un modelo robusto y preparado para escalar a un dataset de mayor volumen en la siguiente fase del proyecto.
+La diferencia entre validación y test (11.4 puntos de mAP@0.5) refleja la sensibilidad de las métricas al tamaño reducido del dataset, donde una sola detección errónea impacta significativamente las métricas globales.
 
 
 \subsection{Rendimiento en Tiempo Real}
 
-El sistema completo (captura de video + inferencia + tracking + visualización) opera a más de 15~FPS en la laptop de desarrollo. YOLO11n registró un tiempo de inferencia de 205.7~ms por imagen en el hardware de evaluación (Intel Core i5-6200U, CPU), siendo la arquitectura más rápida del benchmark. Para el hardware objetivo (Raspberry Pi~5, 8~GB), se estima un rendimiento de $\sim$10~FPS según los benchmarks del fabricante, valor operacionalmente viable dado que la velocidad de colocación de productos sobre la mesa por parte del usuario es significativamente menor.
-
-\subsection{Demo End-to-End}
-
-Se validó el sistema completo con un escenario simulado de checkout: partiendo de una mesa vacía, se agregaron productos de a uno, verificando la correcta confirmación multi-frame, la acumulación en el panel lateral y la generación del archivo JSON de salida. El sistema registró correctamente todos los productos colocados, sin duplicaciones y sin falsos positivos persistentes.
-
-\subsection{Impacto del Data Augmentation}
-
-Para cuantificar el impacto del data augmentation en la generalización del modelo, se compararon tres estrategias de augmentation entrenando YOLO11n sobre el dataset multi-producto con idéntica configuración (100 épocas, seed fija para reproducibilidad). Los resultados se presentan en la \cref{tab:augmentation}.
-
-\begin{table}[htbp]
-\centering
-\caption{Comparación de estrategias de data augmentation --- YOLO11n sobre dataset multi-producto.}
-\label{tab:augmentation}
-\begin{tabular}{lcccc}
-\hline
-\textbf{Configuración} & \textbf{Val mAP@0.5} & \textbf{Test mAP@0.5} & \textbf{Test P} & \textbf{Test R} \\
-\hline
-Sin augmentation       & 0.851 & 0.693 & 0.878 & 0.481 \\
-Default Ultralytics    & \textbf{0.934} & \textbf{0.790} & 0.821 & \textbf{0.711} \\
-Augmentation agresivo  & 0.927 & 0.721 & \textbf{0.859} & 0.642 \\
-\hline
-\end{tabular}
-\end{table}
-
-Los resultados confirman que el data augmentation es crítico para la generalización: sin augmentation, el rendimiento en test cae significativamente. La configuración por defecto de Ultralytics (mosaic, flip horizontal, jitter HSV) ofrece el mejor balance entre precision y recall, superando tanto a la ausencia de augmentation como a la configuración agresiva (que incorpora mixup, rotación de 15 grados y jitter HSV más intenso).
+El sistema completo (captura de video + inferencia + tracking + visualización) opera a más de 15~FPS en la laptop de desarrollo. YOLO11n registró un tiempo de inferencia de 205.7~ms por imagen en el hardware de evaluación (Intel Core i5-6200U, CPU), siendo la arquitectura más rápida del benchmark. Para el hardware objetivo (Raspberry Pi~5, 8~GB), se estima un rendimiento de $\sim$10~FPS según los benchmarks del fabricante, valor operacionalmente viable dado que la velocidad de colocación de productos es significativamente menor. Se validó el sistema completo con escenarios simulados de checkout, verificando la correcta confirmación multi-frame, la acumulación en el panel lateral y la generación del archivo JSON de salida sin duplicaciones ni falsos positivos persistentes.
 
 %% ===========================================================================
 \section{Discusión}
@@ -748,7 +719,7 @@ Los resultados confirman que el data augmentation es crítico para la generaliza
 
 \subsection{Interpretación de Resultados}
 
-YOLO11n alcanzó un mAP@0.5 de 0.967 en validación sobre el dataset de producto individual (10 clases), superando ampliamente el umbral mínimo de 0.70 definido en la planificación. En el test split independiente, el modelo obtuvo un mAP@0.5 de 0.833, confirmando la capacidad de generalización. La diferencia entre validación y test (13.4 puntos) sugiere cierto overfitting atribuible al tamaño reducido del dataset. Si bien la comparación directa con el dataset RPC~\cite{wei2019rpc} (que reporta mAP entre 0.50 y 0.80 sobre 200 categorías) no es directa por la diferencia de escala, los resultados confirman la viabilidad del enfoque para un catálogo acotado.
+YOLO11n alcanzó un mAP@0.5 de 0.967 en el benchmark sobre producto individual y 0.963 en validación sobre el dataset multi-producto, superando ampliamente el umbral mínimo de 0.70. En el test split multi-producto, el modelo obtuvo un mAP@0.5 de 0.849, confirmando la capacidad de generalización. La diferencia entre validación y test (11.4 puntos) sugiere cierto overfitting atribuible al tamaño reducido del dataset. Si bien la comparación directa con el dataset RPC~\cite{wei2019rpc} (que reporta mAP entre 0.50 y 0.80 sobre 200 categorías) no es directa por la diferencia de escala, los resultados confirman la viabilidad del enfoque para un catálogo acotado.
 
 \subsection{Limitaciones}
 
@@ -756,7 +727,7 @@ El presente trabajo tiene las siguientes limitaciones:
 \begin{itemize}
   \item \textbf{Escala del dataset:} Solo se evaluaron 10 de las $\sim$60 clases del catálogo completo de la despensa, con un total de 296 imágenes anotadas.
   \item \textbf{Condiciones controladas:} Las imágenes se capturaron bajo iluminación y fondo uniformes. No se evaluó el rendimiento bajo condiciones de iluminación variable.
-  \item \textbf{Diferencia validación-test:} El gap de 13.4 puntos de mAP@0.5 entre validación (0.967) y test (0.833) sobre el dataset individual sugiere overfitting por el tamaño reducido del dataset, mitigable con mayor cantidad de imágenes.
+  \item \textbf{Diferencia validación-test:} El gap de 11.4 puntos de mAP@0.5 entre validación (0.963) y test (0.849) sobre el dataset multi-producto sugiere overfitting por el tamaño reducido del dataset, mitigable con mayor cantidad de imágenes.
   \item \textbf{Métricas de sistema pendientes:} No se midieron métricas end-to-end (order-level accuracy, duplicate rate, miss rate) sobre un benchmark estandarizado.
 \end{itemize}
 
@@ -771,7 +742,7 @@ Las líneas de trabajo futuro incluyen: (1)~escalar el dataset a las $\sim$60 cl
 A partir del diseño, implementación y evaluación del sistema de autocobro propuesto, se derivan las siguientes conclusiones:
 
 \begin{enumerate}
-  \item El benchmark comparativo entre YOLOv8n, YOLOv10n y YOLO11n determinó que YOLO11n ofrece el mejor balance precisión-velocidad, alcanzando un mAP@0.5 de 0.967 en validación y 0.833 en test sobre el dataset individual (10 clases), superando el umbral mínimo de 0.70 y confirmando la viabilidad del enfoque single-stage para este dominio.
+  \item El benchmark comparativo entre YOLOv8n, YOLOv10n y YOLO11n determinó que YOLO11n ofrece el mejor balance precisión-velocidad, alcanzando un mAP@0.5 de 0.963 en validación y 0.849 en test sobre el dataset multi-producto, superando el umbral mínimo de 0.70 y confirmando la viabilidad del enfoque single-stage para este dominio.
 
   \item La arquitectura single-stage con YOLO11n (2.5M parámetros) permite inferencia en tiempo real superior a 15~FPS en laptop y $\sim$10~FPS en Raspberry Pi~5, cumpliendo los requisitos de latencia para una experiencia de usuario fluida sin requerir hardware especializado.
 
@@ -779,7 +750,7 @@ A partir del diseño, implementación y evaluación del sistema de autocobro pro
 
   \item El data augmentation resultó crítico para la generalización del modelo: sin augmentation, el rendimiento en test cae significativamente (ver \cref{tab:augmentation}). Las técnicas por defecto de Ultralytics (mosaic, flip horizontal, jitter HSV) ofrecen el mejor balance, superando tanto la ausencia de augmentation como configuraciones más agresivas.
 
-  \item La diferencia de 13.4 puntos entre validación y test (0.967 vs. 0.833) sobre el dataset individual evidencia overfitting atribuible al tamaño reducido del dataset (296 imágenes). Escalar a las $\sim$60 clases del catálogo completo con mayor cantidad de imágenes por clase es la principal línea de trabajo futuro para mejorar la capacidad de generalización.
+  \item La diferencia de 11.4 puntos entre validación y test (0.963 vs. 0.849) sobre el dataset multi-producto evidencia overfitting atribuible al tamaño reducido del dataset (296 imágenes). Escalar a las $\sim$60 clases del catálogo completo con mayor cantidad de imágenes por clase es la principal línea de trabajo futuro para mejorar la capacidad de generalización.
 
   \item La metodología propuesta es reproducible y extensible: el mismo protocolo de captura, pipeline de augmentation y arquitectura de modelo pueden aplicarse para escalar el catálogo sin cambios en la arquitectura del sistema. El código fuente y los datasets se encuentran disponibles públicamente.
 
