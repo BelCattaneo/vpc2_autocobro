@@ -40,13 +40,17 @@ data/*.zip
 data/roboflow_export/
 
 # Models (archivos grandes)
-models/*.pt
+models/**/*.pt
 models/*.onnx
+!models/best_multiproduct.pt
 !models/.gitkeep
 
 # Pre-trained models (auto-downloaded)
 yolov10*.pt
 yolov11*.pt
+
+# Ultralytics cache
+*.cache
 
 # Training runs
 runs/
